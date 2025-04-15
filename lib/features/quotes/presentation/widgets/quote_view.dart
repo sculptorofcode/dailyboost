@@ -18,6 +18,7 @@ class QuoteView extends StatelessWidget {
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final bool isFavorite;
+  final GlobalKey quoteKey;
 
   const QuoteView({
     required this.quote,
@@ -32,6 +33,7 @@ class QuoteView extends StatelessWidget {
     required this.onSaveToFavorites,
     required this.onShareQuote,
     this.isFavorite = false,
+    required this.quoteKey,
     super.key,
   });
 
@@ -51,6 +53,7 @@ class QuoteView extends StatelessWidget {
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          quoteKey: quoteKey,
         );
       case 'Gradient':
         return GradientQuote(
@@ -64,6 +67,7 @@ class QuoteView extends StatelessWidget {
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          quoteKey: quoteKey,
         );
       case 'Classic':
         return ClassicQuote(
@@ -78,6 +82,7 @@ class QuoteView extends StatelessWidget {
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          quoteKey: quoteKey,
         );
       case 'Card':
       default:
@@ -93,6 +98,7 @@ class QuoteView extends StatelessWidget {
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          quoteKey: quoteKey,
         );
     }
   }

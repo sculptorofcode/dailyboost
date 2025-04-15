@@ -20,13 +20,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -46,7 +46,8 @@ void main() async {
   if (!kIsWeb) {
     final notificationService = NotificationService();
     await notificationService.init();
-    
+    await notificationService.requestNotificationPermission();
+
     // Schedule daily notifications at multiple times
     await notificationService.scheduleDailyQuoteNotification(
       hour: 9,
@@ -55,9 +56,15 @@ void main() async {
     );
 
     await notificationService.scheduleDailyQuoteNotification(
-      hour: 12,
+      hour: 14,
       minute: 30,
       quote: 'Midday motivation boost!',
+    );
+
+    await notificationService.scheduleDailyQuoteNotification(
+      hour: 16,
+      minute: 25,
+      quote: 'Evening inspiration to end your day well!',
     );
 
     await notificationService.scheduleDailyQuoteNotification(
@@ -92,7 +99,7 @@ class MyApp extends StatelessWidget {
             routerConfig: _router,
             debugShowCheckedModeBanner: false,
           );
-        }
+        },
       ),
     );
   }
@@ -164,9 +171,10 @@ class ScaffoldWithNavBar extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: isDarkMode
-                  ? AppConstants.shadowColorDark
-                  : AppConstants.shadowColor,
+              color:
+                  isDarkMode
+                      ? AppConstants.shadowColorDark
+                      : AppConstants.shadowColor,
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -191,9 +199,10 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 initialLocation: index == navigationShell.currentIndex,
               );
             },
-            backgroundColor: isDarkMode
-                ? AppConstants.cardColorDark
-                : AppConstants.cardColor,
+            backgroundColor:
+                isDarkMode
+                    ? AppConstants.cardColorDark
+                    : AppConstants.cardColor,
             elevation: 0,
             height: isLargeScreen ? 70 : 65,
             labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
@@ -202,60 +211,68 @@ class ScaffoldWithNavBar extends StatelessWidget {
               NavigationDestination(
                 icon: Icon(
                   Icons.home_outlined,
-                  color: isDarkMode
-                      ? AppConstants.textColorDark.withOpacity(0.7)
-                      : AppConstants.textColor.withOpacity(0.7),
+                  color:
+                      isDarkMode
+                          ? AppConstants.textColorDark.withOpacity(0.7)
+                          : AppConstants.textColor.withOpacity(0.7),
                 ),
                 selectedIcon: Icon(
                   Icons.home_rounded,
-                  color: isDarkMode
-                      ? AppConstants.primaryColorDark
-                      : AppConstants.primaryColor,
+                  color:
+                      isDarkMode
+                          ? AppConstants.primaryColorDark
+                          : AppConstants.primaryColor,
                 ),
                 label: 'Home',
               ),
               NavigationDestination(
                 icon: Icon(
                   Icons.psychology_outlined,
-                  color: isDarkMode
-                      ? AppConstants.textColorDark.withOpacity(0.7)
-                      : AppConstants.textColor.withOpacity(0.7),
+                  color:
+                      isDarkMode
+                          ? AppConstants.textColorDark.withOpacity(0.7)
+                          : AppConstants.textColor.withOpacity(0.7),
                 ),
                 selectedIcon: Icon(
                   Icons.psychology_rounded,
-                  color: isDarkMode
-                      ? AppConstants.primaryColorDark
-                      : AppConstants.primaryColor,
+                  color:
+                      isDarkMode
+                          ? AppConstants.primaryColorDark
+                          : AppConstants.primaryColor,
                 ),
                 label: 'Mood',
               ),
               NavigationDestination(
                 icon: Icon(
                   Icons.favorite_outline_rounded,
-                  color: isDarkMode
-                      ? AppConstants.textColorDark.withOpacity(0.7)
-                      : AppConstants.textColor.withOpacity(0.7),
+                  color:
+                      isDarkMode
+                          ? AppConstants.textColorDark.withOpacity(0.7)
+                          : AppConstants.textColor.withOpacity(0.7),
                 ),
                 selectedIcon: Icon(
                   Icons.favorite_rounded,
-                  color: isDarkMode
-                      ? AppConstants.accentColorDark
-                      : AppConstants.accentColor,
+                  color:
+                      isDarkMode
+                          ? AppConstants.accentColorDark
+                          : AppConstants.accentColor,
                 ),
                 label: 'Favorites',
               ),
               NavigationDestination(
                 icon: Icon(
                   Icons.settings_outlined,
-                  color: isDarkMode
-                      ? AppConstants.textColorDark.withOpacity(0.7)
-                      : AppConstants.textColor.withOpacity(0.7),
+                  color:
+                      isDarkMode
+                          ? AppConstants.textColorDark.withOpacity(0.7)
+                          : AppConstants.textColor.withOpacity(0.7),
                 ),
                 selectedIcon: Icon(
                   Icons.settings_rounded,
-                  color: isDarkMode
-                      ? AppConstants.tertiaryColorDark
-                      : AppConstants.tertiaryColor,
+                  color:
+                      isDarkMode
+                          ? AppConstants.tertiaryColorDark
+                          : AppConstants.tertiaryColor,
                 ),
                 label: 'Settings',
               ),

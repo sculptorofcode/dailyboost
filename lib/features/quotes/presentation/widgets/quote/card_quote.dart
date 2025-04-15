@@ -14,6 +14,7 @@ class CardQuote extends StatelessWidget {
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final bool isFavorite;
+  final GlobalKey quoteKey;
 
   const CardQuote({
     required this.quote,
@@ -27,6 +28,7 @@ class CardQuote extends StatelessWidget {
     required this.onSaveToFavorites,
     required this.onShareQuote,
     this.isFavorite = false,
+    required this.quoteKey,
     super.key,
   });
 
@@ -54,100 +56,106 @@ class CardQuote extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.baseRadius,
-                    ),
-                  ),
-                  elevation: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(32.0),
-                    decoration: BoxDecoration(
+                RepaintBoundary(
+                  key: quoteKey,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         AppConstants.baseRadius,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              isDarkMode
-                                  ? AppConstants.shadowColorDark
-                                  : AppConstants.shadowColor,
-                          blurRadius: 8,
-                        ),
-                      ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.format_quote,
-                          size: 40,
-                          color: Theme.of(context).colorScheme.primary,
+                    elevation: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(32.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.baseRadius,
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          quote.content,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            height: 1.5,
-                            letterSpacing: 0.4,
-                            fontSize: fontSize,
+                        boxShadow: [
+                          BoxShadow(
                             color:
                                 isDarkMode
-                                    ? AppConstants.textColorDark
-                                    : AppConstants.textColor,
+                                    ? AppConstants.shadowColorDark
+                                    : AppConstants.shadowColor,
+                            blurRadius: 8,
                           ),
-                        ),
-                        const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.secondary,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.format_quote,
+                            size: 40,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            quote.content,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              height: 1.5,
+                              letterSpacing: 0.4,
+                              fontSize: fontSize,
+                              color:
+                                  isDarkMode
+                                      ? AppConstants.textColorDark
+                                      : AppConstants.textColor,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    quote.author,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Mood: ${quote.mood}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.copyWith(
-                                      color:
-                                          isDarkMode
-                                              ? AppConstants.textColorDark
-                                                  .withOpacity(0.7)
-                                              : AppConstants.textColor
-                                                  .withOpacity(0.7),
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      quote.author,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Mood: ${quote.mood}',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.copyWith(
+                                        color:
+                                            isDarkMode
+                                                ? AppConstants.textColorDark
+                                                    .withOpacity(0.7)
+                                                : AppConstants.textColor
+                                                    .withOpacity(0.7),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -163,7 +171,9 @@ class CardQuote extends StatelessWidget {
                     IconButton(
                       onPressed: onSaveToFavorites,
                       icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
+                        isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border_rounded,
                       ),
                       color: Theme.of(context).colorScheme.secondary,
                     ),

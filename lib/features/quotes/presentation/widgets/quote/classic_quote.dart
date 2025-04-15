@@ -14,6 +14,7 @@ class ClassicQuote extends StatelessWidget {
   final VoidCallback onNewQuote;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
+  final GlobalKey quoteKey;
 
   const ClassicQuote({
     required this.quote,
@@ -27,6 +28,7 @@ class ClassicQuote extends StatelessWidget {
     required this.onNewQuote,
     required this.onSaveToFavorites,
     required this.onShareQuote,
+    required this.quoteKey,
     super.key,
   });
 
@@ -105,125 +107,132 @@ class ClassicQuote extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Classic book-like quote styling
-                Container(
-                  padding: const EdgeInsets.all(32.0),
-                  decoration: BoxDecoration(
-                    color:
-                        isDarkMode ? AppConstants.cardColorDark : Colors.white,
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.baseRadius,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            isDarkMode
-                                ? AppConstants.shadowColorDark
-                                : AppConstants.shadowColor,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                    border: Border.all(
+                RepaintBoundary(
+                  key: quoteKey,
+                  child: Container(
+                    padding: const EdgeInsets.all(32.0),
+                    decoration: BoxDecoration(
                       color:
                           isDarkMode
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade300,
+                              ? AppConstants.cardColorDark
+                              : Colors.white,
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.baseRadius,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              isDarkMode
+                                  ? AppConstants.shadowColorDark
+                                  : AppConstants.shadowColor,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color:
+                            isDarkMode
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade300,
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      // Decorative divider
-                      Container(
-                        height: 2,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              Theme.of(context).colorScheme.primary,
-                              Colors.transparent,
-                            ],
+                    child: Column(
+                      children: [
+                        // Decorative divider
+                        Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Theme.of(context).colorScheme.primary,
+                                Colors.transparent,
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 30),
+                        const SizedBox(height: 30),
 
-                      // Main quote text
-                      Text(
-                        '"${quote.content}"',
-                        style: TextStyle(
-                          fontFamily: 'serif',
-                          fontSize: fontSize,
-                          height: 1.6,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.italic,
-                          color:
-                              isDarkMode
-                                  ? AppConstants.textColorDark
-                                  : AppConstants.textColor,
+                        // Main quote text
+                        Text(
+                          '"${quote.content}"',
+                          style: TextStyle(
+                            fontFamily: 'serif',
+                            fontSize: fontSize,
+                            height: 1.6,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.italic,
+                            color:
+                                isDarkMode
+                                    ? AppConstants.textColorDark
+                                    : AppConstants.textColor,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
 
-                      const SizedBox(height: 30),
+                        const SizedBox(height: 30),
 
-                      // Decorative divider
-                      Container(
-                        height: 1,
-                        width: 100,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.5),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Author text with classic styling
-                      Text(
-                        quote.author,
-                        style: TextStyle(
-                          fontFamily: 'serif',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1,
-                          color: Theme.of(context).colorScheme.primary,
+                        // Decorative divider
+                        Container(
+                          height: 1,
+                          width: 100,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.5),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
 
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 20),
 
-                      // Mood text
-                      Text(
-                        quote.mood,
-                        style: TextStyle(
-                          fontFamily: 'serif',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color:
-                              isDarkMode
-                                  ? AppConstants.textColorDark.withOpacity(0.7)
-                                  : AppConstants.textColor.withOpacity(0.7),
+                        // Author text with classic styling
+                        Text(
+                          quote.author,
+                          style: TextStyle(
+                            fontFamily: 'serif',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 8),
 
-                      // Decorative divider
-                      Container(
-                        height: 2,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              Theme.of(context).colorScheme.primary,
-                              Colors.transparent,
-                            ],
+                        // Mood text
+                        Text(
+                          quote.mood,
+                          style: TextStyle(
+                            fontFamily: 'serif',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color:
+                                isDarkMode
+                                    ? AppConstants.textColorDark.withOpacity(
+                                      0.7,
+                                    )
+                                    : AppConstants.textColor.withOpacity(0.7),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Decorative divider
+                        Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Theme.of(context).colorScheme.primary,
+                                Colors.transparent,
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 

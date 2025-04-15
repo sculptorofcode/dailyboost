@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -18,6 +19,20 @@ class NotificationService {
     );
     await _notificationsPlugin.initialize(initSettings);
     tz.initializeTimeZones();
+  }
+
+  Future<void> requestNotificationPermission() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      final status = await Permission.notification.request();
+      if (status.isGranted) {
+        // Permission granted
+      } else if (status.isDenied) {
+        // Permission denied
+      } else if (status.isPermanentlyDenied) {
+        // Permission permanently denied, open app settings
+        await openAppSettings();
+      }
+    }
   }
 
   Future<void> requestExactAlarmPermissionIfNeeded() async {

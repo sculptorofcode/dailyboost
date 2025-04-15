@@ -87,6 +87,8 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
       RenderRepaintBoundary boundary =
           _quoteKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage();
+      // Capture image with higher resolution (3x pixel density)
+      await boundary.toImage(pixelRatio: 10.0);
       ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );
@@ -147,61 +149,59 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
           key: ValueKey("favorite-${quote.id}"),
           quote: quote,
           builder:
-              (isFavorite, toggleFavorite) => RepaintBoundary(
-                key: _quoteKey,
-                child: QuoteView(
-                  quote: quote,
-                  isDarkMode: widget.isDarkMode,
-                  fontSize: fontSize,
-                  quoteStyle: quoteStyle,
-                  animationController: _animationController,
-                  opacityAnimation: _opacityAnimation,
-                  scaleAnimation: _scaleAnimation,
-                  rotateAnimation: _rotateAnimation,
-                  isFavorite: isFavorite,
-                  onNewQuote: () {
-                    final nextPage = (_currentPage + 1) % widget.quotes.length;
-                    _pageController.animateToPage(
-                      nextPage,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+              (isFavorite, toggleFavorite) => QuoteView(
+                quote: quote,
+                isDarkMode: widget.isDarkMode,
+                fontSize: fontSize,
+                quoteStyle: quoteStyle,
+                animationController: _animationController,
+                opacityAnimation: _opacityAnimation,
+                scaleAnimation: _scaleAnimation,
+                rotateAnimation: _rotateAnimation,
+                isFavorite: isFavorite,
+                onNewQuote: () {
+                  final nextPage = (_currentPage + 1) % widget.quotes.length;
+                  _pageController.animateToPage(
+                    nextPage,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                onSaveToFavorites: () {
+                  toggleFavorite();
+                  if (!isFavorite) {
+                    context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Added to favorites!'),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        duration: const Duration(milliseconds: 300),
+                      ),
                     );
-                  },
-                  onSaveToFavorites: () {
-                    toggleFavorite();
-                    if (!isFavorite) {
-                      context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Added to favorites!'),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          duration: const Duration(milliseconds: 300),
+                  } else {
+                    context.read<HomeBloc>().add(
+                      RemoveFromFavoritesEvent(quote.id),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Removed from favorites'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      );
-                    } else {
-                      context.read<HomeBloc>().add(
-                        RemoveFromFavoritesEvent(quote.id),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Removed from favorites'),
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          duration: const Duration(milliseconds: 300),
-                        ),
-                      );
-                    }
-                  },
-                  onShareQuote: _shareQuoteImage,
-                ),
+                        duration: const Duration(milliseconds: 300),
+                      ),
+                    );
+                  }
+                },
+                onShareQuote: _shareQuoteImage,
+                quoteKey: _quoteKey,
               ),
         );
       },

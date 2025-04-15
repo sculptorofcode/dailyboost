@@ -14,6 +14,7 @@ class GradientQuote extends StatelessWidget {
   final VoidCallback onNewQuote;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
+  final GlobalKey quoteKey;
 
   const GradientQuote({
     required this.quote,
@@ -26,6 +27,7 @@ class GradientQuote extends StatelessWidget {
     required this.onNewQuote,
     required this.onSaveToFavorites,
     required this.onShareQuote,
+    required this.quoteKey,
     super.key,
   });
 
@@ -91,96 +93,99 @@ class GradientQuote extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Gradient quote card
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.baseRadius,
-                    ),
-                    gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: gradientColors.first.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                RepaintBoundary(
+                  key: quoteKey,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.baseRadius,
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.format_quote,
-                        size: 40,
-                        color: Colors.white70,
+                      gradient: LinearGradient(
+                        colors: gradientColors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        quote.content,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          height: 1.5,
-                          letterSpacing: 0.4,
-                          fontSize: fontSize,
-                          color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradientColors.first.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
                         ),
-                      ),
-                      const SizedBox(height: 32),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 12.0,
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.format_quote,
+                          size: 40,
+                          color: Colors.white70,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.black12,
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.baseRadius,
+                        const SizedBox(height: 24),
+                        Text(
+                          quote.content,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            height: 1.5,
+                            letterSpacing: 0.4,
+                            fontSize: fontSize,
+                            color: Colors.white,
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.35,
-                              child: Text(
-                                quote.author,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  fontSize: 16,
+                        const SizedBox(height: 32),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 12.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black12,
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.baseRadius,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.35,
+                                child: Text(
+                                  quote.author,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 4,
-                              height: 4,
-                              decoration: const BoxDecoration(
-                                color: Colors.white54,
-                                shape: BoxShape.circle,
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 4,
+                                height: 4,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white54,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              quote.mood,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
+                              const SizedBox(width: 8),
+                              Text(
+                                quote.mood,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
