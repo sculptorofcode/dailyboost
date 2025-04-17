@@ -12,6 +12,8 @@ import 'package:flutter/rendering.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
+enum SortOption { newest, oldest, authorAZ, authorZA, moodAZ, moodZA }
+
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
@@ -22,7 +24,10 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  final GlobalKey _quoteKey = GlobalKey();
+  final Map<String, GlobalKey> _quoteKeys = {};
+
+  // Current sort option
+  SortOption _currentSortOption = SortOption.newest;
 
   @override
   void initState() {
@@ -38,6 +43,117 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  // Sort quotes based on current sort option
+  List<QuoteModel> _sortQuotes(List<QuoteModel> quotes) {
+    switch (_currentSortOption) {
+      case SortOption.newest:
+        // Assuming the most recently added quotes are at the end of the list
+        return List.from(quotes);
+      case SortOption.oldest:
+        // Reverse the list to show oldest first
+        return List.from(quotes.reversed);
+      case SortOption.authorAZ:
+        return List.from(quotes)..sort((a, b) => a.author.compareTo(b.author));
+      case SortOption.authorZA:
+        return List.from(quotes)..sort((a, b) => b.author.compareTo(a.author));
+      case SortOption.moodAZ:
+        return List.from(quotes)..sort((a, b) => a.mood.compareTo(b.mood));
+      case SortOption.moodZA:
+        return List.from(quotes)..sort((a, b) => b.mood.compareTo(a.mood));
+    }
+  }
+
+  // Get the display name for each sort option
+  String _getSortOptionDisplayName(SortOption option) {
+    switch (option) {
+      case SortOption.newest:
+        return 'Newest first';
+      case SortOption.oldest:
+        return 'Oldest first';
+      case SortOption.authorAZ:
+        return 'Author (A-Z)';
+      case SortOption.authorZA:
+        return 'Author (Z-A)';
+      case SortOption.moodAZ:
+        return 'Mood (A-Z)';
+      case SortOption.moodZA:
+        return 'Mood (Z-A)';
+    }
+  }
+
+  // Display the sort options menu
+  void _showSortOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConstants.baseRadius),
+        ),
+      ),
+      backgroundColor: Theme.of(context).cardColor,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sort,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Sort by',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: SortOption.values.length,
+                  itemBuilder: (context, index) {
+                    final option = SortOption.values[index];
+                    final isSelected = _currentSortOption == option;
+
+                    return ListTile(
+                      title: Text(_getSortOptionDisplayName(option)),
+                      leading: Icon(
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color:
+                            isSelected
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _currentSortOption = option;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<bool> _confirmDelete(BuildContext context) async {
@@ -83,10 +199,10 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     return result ?? false;
   }
 
-  Future<void> _shareQuote(QuoteModel quote) async {
+  Future<void> _shareQuote(QuoteModel quote, GlobalKey quoteKey) async {
     try {
       RenderRepaintBoundary boundary =
-          _quoteKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
+          quoteKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage();
       ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
@@ -215,18 +331,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                             : AppConstants.primaryColor,
                   ),
                   onPressed: () {
-                    // TODO: Implement sorting options
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Sorting options coming soon'),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.baseRadius,
-                          ),
-                        ),
-                      ),
-                    );
+                    _showSortOptions(context);
                   },
                   tooltip: 'Sort quotes',
                 ),
@@ -235,7 +340,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             BlocBuilder<FavoritesBloc, FavoritesState>(
               builder: (context, state) {
                 if (state is FavoritesLoaded) {
-                  final favorites = state.favoriteQuotes;
+                  final favorites = _sortQuotes(state.favoriteQuotes);
                   if (favorites.isEmpty) {
                     return SliverFillRemaining(child: _buildEmptyState());
                   }
@@ -246,6 +351,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final quote = favorites[index];
+                        _quoteKeys.putIfAbsent(quote.id, () => GlobalKey());
 
                         // Create staggered animation based on index
                         final animationDelay = index * 0.05;
@@ -279,6 +385,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                             quote,
                             isDarkMode,
                             index,
+                            _quoteKeys[quote.id]!,
                           ),
                         );
                       }, childCount: favorites.length),
@@ -342,6 +449,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     QuoteModel quote,
     bool isDarkMode,
     int index,
+    GlobalKey quoteKey,
   ) {
     // Create a slightly different background color for every other item
     final isEvenIndex = index % 2 == 0;
@@ -375,93 +483,101 @@ class _FavoritesScreenState extends State<FavoritesScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quote icon
-                  Row(
+            RepaintBoundary(
+              key: quoteKey,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(AppConstants.baseRadius),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.format_quote,
-                        color: Theme.of(
+                      // Quote icon
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.format_quote,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.5),
+                            size: 24,
+                          ),
+                          const Spacer(),
+                          // Mood tag
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              quote.mood,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Quote content
+                      Text(
+                        '"${quote.content}"',
+                        style: Theme.of(
                           context,
-                        ).colorScheme.primary.withOpacity(0.5),
-                        size: 24,
+                        ).textTheme.titleMedium?.copyWith(
+                          color:
+                              isDarkMode
+                                  ? AppConstants.textColorDark
+                                  : AppConstants.textColor,
+                          height: 1.5,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                      const Spacer(),
-                      // Mood tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          quote.mood,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+
+                      const SizedBox(height: 16),
+
+                      // Author with accent line
+                      Row(
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.secondary,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              quote.author,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Quote content
-                  RepaintBoundary(
-                    key: _quoteKey,
-                    child: Text(
-                      '"${quote.content}"',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color:
-                            isDarkMode
-                                ? AppConstants.textColorDark
-                                : AppConstants.textColor,
-                        height: 1.5,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Author with accent line
-                  Row(
-                    children: [
-                      Container(
-                        width: 3,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.secondary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          quote.author,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
 
@@ -472,7 +588,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    onPressed: () => _shareQuote(quote),
+                    onPressed: () => _shareQuote(quote, quoteKey),
                     icon: Icon(
                       Icons.share_outlined,
                       color:

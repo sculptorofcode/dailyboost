@@ -1,8 +1,8 @@
 import 'package:dailyboost/core/theme/theme_provider.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
-import 'package:dailyboost/features/quotes/data/repositories/quote_repository.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_event.dart';
+import 'package:dailyboost/features/quotes/presentation/widgets/favorite_check.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/quote_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +37,6 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotateAnimation;
   int _currentPage = 0;
-  final GlobalKey _quoteKey = GlobalKey();
 
   @override
   void initState() {
@@ -82,10 +81,10 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
     super.dispose();
   }
 
-  Future<void> _shareQuoteImage() async {
+  Future<void> _shareQuoteImageWithKey(GlobalKey quoteKey) async {
     try {
       RenderRepaintBoundary boundary =
-          _quoteKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          quoteKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage();
       // Capture image with higher resolution (3x pixel density)
       await boundary.toImage(pixelRatio: 10.0);
@@ -144,6 +143,7 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
       },
       itemBuilder: (context, index) {
         final quote = widget.quotes[index];
+        final GlobalKey quoteKey = GlobalKey();
 
         return FavoriteCheck(
           key: ValueKey("favorite-${quote.id}"),
@@ -200,68 +200,11 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
                     );
                   }
                 },
-                onShareQuote: _shareQuoteImage,
-                quoteKey: _quoteKey,
+                onShareQuote: () => _shareQuoteImageWithKey(quoteKey),
+                quoteKey: quoteKey,
               ),
         );
       },
     );
-  }
-}
-
-/// Widget that checks if a quote is a favorite and displays the appropriate icon
-class FavoriteCheck extends StatefulWidget {
-  final QuoteModel quote;
-  final Widget Function(bool isFavorite, VoidCallback toggleFavorite) builder;
-
-  const FavoriteCheck({required this.quote, required this.builder, super.key});
-
-  @override
-  State<FavoriteCheck> createState() => _FavoriteCheckState();
-}
-
-class _FavoriteCheckState extends State<FavoriteCheck> {
-  final QuoteRepository _repository = QuoteRepository();
-  bool _isFavorite = false;
-  bool _isLoaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfFavorite();
-  }
-
-  @override
-  void didUpdateWidget(FavoriteCheck oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.quote.id != widget.quote.id) {
-      _checkIfFavorite();
-    }
-  }
-
-  Future<void> _checkIfFavorite() async {
-    final favoriteIds = await _repository.getFavorites();
-    if (mounted) {
-      setState(() {
-        _isFavorite = favoriteIds.contains(widget.quote.id);
-        _isLoaded = true;
-      });
-    }
-  }
-
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _isLoaded
-        ? widget.builder(_isFavorite, _toggleFavorite)
-        : widget.builder(
-          false,
-          _toggleFavorite,
-        ); // Default to not favorite while loading
   }
 }

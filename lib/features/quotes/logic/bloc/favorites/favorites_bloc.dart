@@ -6,23 +6,25 @@ import 'favorites_state.dart';
 
 class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
   final QuoteRepository _repository = QuoteRepository();
-  List<QuoteModel> _allQuotes = [];
 
   FavoritesBloc() : super(FavoritesInitial()) {
     on<LoadFavoritesEvent>((event, emit) async {
       emit(FavoritesLoading());
       try {
-        // Fetch all quotes if not loaded
-        if (_allQuotes.isEmpty) {
-          _allQuotes = await _repository.fetchQuotes();
-        }
-
         // Get favorite IDs
         final favoriteIds = await _repository.getFavorites();
 
-        // Get the full QuoteModel objects for favorites
-        final favoriteQuotes =
-            _allQuotes.where((q) => favoriteIds.contains(q.id)).toList();
+        // Fetch each favorite quote by ID using the API
+        final favoriteQuotes = <QuoteModel>[];
+        // print('Favorite IDs: $favoriteIds');
+        for (final id in favoriteIds) {
+          // debugPrint('Fetching quote with ID: $id');
+          final quote = await _repository.fetchQuoteById(id);
+          // debugPrint('Fetched quote: $quote');
+          if (quote != null) {
+            favoriteQuotes.add(quote);
+          }
+        }
 
         emit(FavoritesLoaded(favoriteQuotes));
       } catch (e) {

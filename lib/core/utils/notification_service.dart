@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -47,10 +48,14 @@ class NotificationService {
   }
 
   Future<void> scheduleDailyQuoteNotification({
+    required int id,
     required int hour,
     required int minute,
     required String quote,
   }) async {
+    // print(
+    //   '[NotificationService] scheduleDailyQuoteNotification called with id=$id, hour=$hour, minute=$minute, quote=$quote',
+    // );
     await requestExactAlarmPermissionIfNeeded();
 
     const AndroidNotificationDetails androidDetails =
@@ -79,6 +84,10 @@ class NotificationService {
     );
 
     final now = tz.TZDateTime.now(tz.local);
+    // print(
+    //   '[NotificationService] Current time: '
+    //   '${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}:${now.second}',
+    // );
     final scheduledTime = tz.TZDateTime(
       tz.local,
       now.year,
@@ -91,17 +100,28 @@ class NotificationService {
         scheduledTime.isBefore(now)
             ? scheduledTime.add(const Duration(days: 1))
             : scheduledTime;
+    // print(
+    //   '[NotificationService] Scheduling notification for: '
+    //   '${nextScheduledTime.year}-${nextScheduledTime.month}-${nextScheduledTime.day} '
+    //   '${nextScheduledTime.hour}:${nextScheduledTime.minute}:${nextScheduledTime.second}',
+    // );
 
-    await _notificationsPlugin.zonedSchedule(
-      0,
-      'Daily Quote',
-      quote,
-      nextScheduledTime,
-      notificationDetails,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    try {
+      await _notificationsPlugin.zonedSchedule(
+        id, // Use unique id
+        'Daily Quote',
+        quote,
+        nextScheduledTime,
+        notificationDetails,
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      // print('[NotificationService] zonedSchedule completed successfully');
+    } catch (e, st) {
+      debugPrint('[NotificationService] zonedSchedule error: $e\n$st');
+      // print('[NotificationService] zonedSchedule error: $e\n$st');
+    }
   }
 }

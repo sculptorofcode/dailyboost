@@ -1,37 +1,25 @@
 import 'dart:convert';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import '../../../../core/utils/api_client.dart';
 
 class QuoteRepository {
   static const String _favoritesKey = 'favorite_quotes';
   static const String _localJsonPath = 'assets/quotes.json';
-  // Replace with your own API key if you have one or use this public one
-  static const String _apiKey = '3c8649fc551e873cb01617e6d66dbef6';
-  
+
   // Cache to store all fetched quotes
   List<QuoteModel> _cachedQuotes = [];
 
+  final ApiClient _apiClient = ApiClient();
+
   Future<List<QuoteModel>> fetchQuotes() async {
     try {
-      final dio = Dio();
-      dio.options.headers = {
-        'Authorization': 'Token token=$_apiKey',
-        'Content-Type': 'application/json',
-      };
-
-      // Using FavQs API
-      final response = await dio.get(
-        'https://favqs.com/api/quotes',
-        queryParameters: {'filter': 'inspirational'},
-      );
-
+      final response = await _apiClient.get(path: 'quotes');
       if (response.statusCode == 200) {
         final data = response.data;
         final List quotes = data['quotes'] ?? [];
-
         return quotes
             .map(
               (q) => QuoteModel(
@@ -46,7 +34,6 @@ class QuoteRepository {
     } catch (e) {
       debugPrint('Error fetching quotes from FavQs API: $e');
     }
-
     // Final fallback to local JSON
     final localData = await rootBundle.loadString(_localJsonPath);
     final List quotes = json.decode(localData);
@@ -59,13 +46,13 @@ class QuoteRepository {
       _cachedQuotes = await fetchQuotes();
       _cachedQuotes.shuffle(); // Shuffle once when initially loaded
     }
-    
+
     // Take a batch of quotes from the cached list
     final batchToReturn = _cachedQuotes.take(batchSize).toList();
-    
+
     return batchToReturn;
   }
-  
+
   // Load more quotes when the user needs them
   Future<List<QuoteModel>> loadMoreQuotes({int batchSize = 20}) async {
     // If cache is empty or running low, refetch quotes
@@ -74,71 +61,92 @@ class QuoteRepository {
       newQuotes.shuffle();
       _cachedQuotes.addAll(newQuotes);
     }
-    
+
     // Return a batch of quotes
     final batchToReturn = _cachedQuotes.take(batchSize).toList();
-    
+
     // Remove the returned quotes from the cache
     _cachedQuotes = _cachedQuotes.sublist(
-      batchToReturn.length < _cachedQuotes.length ? batchToReturn.length : 0);
-    
+      batchToReturn.length < _cachedQuotes.length ? batchToReturn.length : 0,
+    );
+
     return batchToReturn;
+  }
+
+  Future<QuoteModel?> fetchQuoteById(String quoteId) async {
+    try {
+      final response = await _apiClient.get(path: 'quotes/$quoteId');
+      if (response.statusCode == 200) {
+        // debugPrint('Response: ${response.data}');
+        final q = response.data;
+        return QuoteModel(
+          id: q['id']?.toString() ?? '',
+          content: q['body'] ?? '',
+          author: q['author'] ?? 'Unknown',
+          mood: _mapTagsToMood(q['tags'] ?? []),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error fetching quote by id: $e');
+    }
+    return null;
+  }
+
+  Future<QuoteModel?> fetchQuoteByMood(String mood) async {
+    try {
+      final response = await _apiClient.get(
+        path: 'quotes',
+        queryParameters: {'filter': mood},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final List quotes = data['quotes'] ?? [];
+        if (quotes.isNotEmpty) {
+          final q = quotes.first;
+          return QuoteModel(
+            id: q['id']?.toString() ?? '',
+            content: q['body'] ?? '',
+            author: q['author'] ?? 'Unknown',
+            mood: _mapTagsToMood(q['tags'] ?? []),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching quote by mood from FavQs API: $e');
+    }
+    // Fallback: try to find a quote by mood in local JSON
+    final localData = await rootBundle.loadString(_localJsonPath);
+    final List quotes = json.decode(localData);
+    final filtered =
+        quotes
+            .where((q) => (q['mood'] ?? '').toLowerCase() == mood.toLowerCase())
+            .toList();
+    if (filtered.isNotEmpty) {
+      return QuoteModel.fromJson(filtered.first);
+    }
+    return null;
   }
 
   // Map FavQs API tags to moods
   String _mapTagsToMood(List<dynamic> tags) {
+    // debugPrint('Tags: $tags');
     final List<String> tagStrings =
-        tags.map((tag) => tag.toString().toLowerCase()).toList();
+        tags
+            .map(
+              (tag) => tag
+                  .toString()
+                  .replaceAll('_', ' ')
+                  .replaceFirstMapped(
+                    RegExp(r'^\w'),
+                    (match) => match.group(0)!.toUpperCase(),
+                  ),
+            )
+            .toList();
 
-    if (tagStrings.any(
-      (tag) => ['happy', 'joy', 'happiness', 'laugh'].contains(tag),
-    )) {
-      return 'Happy';
-    } else if (tagStrings.any(
-      (tag) => ['sad', 'sorrow', 'grief'].contains(tag),
-    )) {
-      return 'Sad';
-    } else if (tagStrings.any(
-      (tag) =>
-          ['motivational', 'inspiration', 'success', 'goals'].contains(tag),
-    )) {
-      return 'Motivated';
-    } else if (tagStrings.any(
-      (tag) => ['calm', 'peace', 'tranquil', 'serenity', 'zen'].contains(tag),
-    )) {
-      return 'Calm';
-    } else if (tagStrings.any(
-      (tag) => ['excitement', 'excited', 'thrill'].contains(tag),
-    )) {
-      return 'Excited';
-    } else if (tagStrings.any(
-      (tag) => [
-        'reflection',
-        'philosophy',
-        'wisdom',
-        'deep',
-        'thought',
-      ].contains(tag),
-    )) {
-      return 'Reflective';
-    } else if (tagStrings.any(
-      (tag) => ['love', 'romance', 'passion', 'heart'].contains(tag),
-    )) {
-      return 'Romantic';
-    } else if (tagStrings.any(
-      (tag) => ['anger', 'frustration', 'rage'].contains(tag),
-    )) {
-      return 'Angry';
-    } else if (tagStrings.any(
-      (tag) => ['hope', 'future', 'optimism'].contains(tag),
-    )) {
-      return 'Hopeful';
-    } else if (tagStrings.any(
-      (tag) => ['gratitude', 'thankful', 'appreciation'].contains(tag),
-    )) {
-      return 'Grateful';
+    if (tagStrings.isNotEmpty) {
+      return tagStrings.join(', ');
     } else {
-      return 'Reflective'; // Default mood
+      return 'Unknown';
     }
   }
 

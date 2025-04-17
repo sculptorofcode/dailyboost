@@ -86,7 +86,7 @@ class _ErrorViewState extends State<ErrorView>
                   ],
                 ),
                 child: Icon(
-                  Icons.wifi_off_rounded,
+                  Icons.error_outline_rounded,
                   size: 56,
                   color: Theme.of(context).colorScheme.error,
                 ),

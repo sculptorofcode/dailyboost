@@ -30,9 +30,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FetchQuoteBatchEvent>((event, emit) async {
       emit(HomeLoading());
       try {
-        final quotes = await _repository.fetchQuoteBatch(batchSize: _quoteBatchSize);
+        final quotes = await _repository.fetchQuoteBatch(
+          batchSize: _quoteBatchSize,
+        );
         if (quotes.isNotEmpty) {
-          emit(QuoteBatchLoaded(quotes, hasReachedMax: quotes.length < _quoteBatchSize));
+          emit(
+            QuoteBatchLoaded(
+              quotes,
+              hasReachedMax: quotes.length < _quoteBatchSize,
+            ),
+          );
         } else {
           emit(HomeError('No quotes found.'));
         }
@@ -46,7 +53,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final currentState = state;
       if (currentState is QuoteBatchLoaded && !currentState.hasReachedMax) {
         try {
-          final moreQuotes = await _repository.loadMoreQuotes(batchSize: _quoteBatchSize);
+          final moreQuotes = await _repository.loadMoreQuotes(
+            batchSize: _quoteBatchSize,
+          );
           if (moreQuotes.isEmpty) {
             emit(currentState.copyWith(hasReachedMax: true));
           } else {
@@ -66,13 +75,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<GetQuoteByMoodEvent>((event, emit) async {
       emit(HomeLoading());
       try {
-        if (_allQuotes.isEmpty) {
-          _allQuotes = await _repository.fetchQuotes();
-        }
-        final filtered = await _repository.filterByMood(_allQuotes, event.mood);
-        if (filtered.isNotEmpty) {
-          filtered.shuffle();
-          emit(HomeLoaded(filtered.first));
+        final quote = await _repository.fetchQuoteByMood(event.mood);
+        if (quote != null) {
+          emit(HomeLoaded(quote));
         } else {
           emit(HomeError('No quotes found for this mood.'));
         }
@@ -85,7 +90,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       await _repository.addFavorite(event.quote);
       // No need to change state when adding to favorites
     });
-    
+
     on<RemoveFromFavoritesEvent>((event, emit) async {
       await _repository.removeFavorite(event.id);
       // No need to change state when removing from favorites

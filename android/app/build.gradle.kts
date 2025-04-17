@@ -1,8 +1,21 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Read properties from key.properties
+val keyPropertiesFile = rootProject.file("key.properties") 
+
+val keyProperties = Properties()
+if (keyPropertiesFile.exists()) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
+} else {
+    println("Warning: key.properties file not found. Using default signing config values.")
 }
 
 android {
@@ -20,6 +33,16 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    signingConfigs {
+        create("release") {
+            // Use values from key.properties or provide defaults/placeholders
+            storeFile = file(keyProperties.getProperty("storeFile") ?: "../dailyboost-key.jks") // Use getProperty for safety
+            storePassword = keyProperties.getProperty("storePassword") ?: ""
+            keyAlias = keyProperties.getProperty("keyAlias") ?: ""
+            keyPassword = keyProperties.getProperty("keyPassword") ?: ""
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.dailyboost"
@@ -32,23 +55,18 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true // Enable code shrinking
+            ndk {
+                debugSymbolLevel = "none"
+            }
         }
     }
 }
 
 flutter {
     source = "../.."
-}
-
-// Fix for stripReleaseDebugSymbols task failure
-tasks.configureEach {
-    if (name.contains("stripDebugSymbols") || name.contains("stripReleaseDebugSymbols")) {
-        doNotTrackState("Disable state tracking for strip debug symbols")
-    }
 }
 
 dependencies {

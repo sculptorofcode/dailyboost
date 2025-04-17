@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'features/quotes/logic/bloc/quote/quote_bloc.dart';
 import 'features/quotes/logic/bloc/home/home_bloc.dart';
 import 'features/quotes/presentation/screens/home_screen.dart';
-import 'features/quotes/presentation/screens/mood_screen.dart';
 import 'features/quotes/presentation/screens/favorites_screen.dart';
 import 'features/quotes/presentation/screens/settings_screen.dart';
 import 'core/theme/app_theme.dart';
@@ -48,28 +47,25 @@ void main() async {
     await notificationService.init();
     await notificationService.requestNotificationPermission();
 
-    // Schedule daily notifications at multiple times
+    // Schedule daily notifications at multiple times with unique IDs
     await notificationService.scheduleDailyQuoteNotification(
+      id: 1,
       hour: 9,
       minute: 0,
       quote: 'Start your day with inspiration!',
     );
 
     await notificationService.scheduleDailyQuoteNotification(
+      id: 2,
       hour: 14,
       minute: 30,
       quote: 'Midday motivation boost!',
     );
 
     await notificationService.scheduleDailyQuoteNotification(
+      id: 3,
       hour: 16,
       minute: 25,
-      quote: 'Evening inspiration to end your day well!',
-    );
-
-    await notificationService.scheduleDailyQuoteNotification(
-      hour: 17,
-      minute: 0,
       quote: 'Evening inspiration to end your day well!',
     );
   }
@@ -117,15 +113,6 @@ final GoRouter _router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
-          ],
-        ),
-        // Mood branch
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/mood',
-              builder: (context, state) => const MoodScreen(),
-            ),
           ],
         ),
         // Favorites branch
@@ -189,7 +176,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: (index) {
               // Load favorites when navigating to Favorites tab
-              if (index == 2) {
+              if (index == 1) {
                 context.read<FavoritesBloc>().add(LoadFavoritesEvent());
               }
 
@@ -224,23 +211,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
                           : AppConstants.primaryColor,
                 ),
                 label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.psychology_outlined,
-                  color:
-                      isDarkMode
-                          ? AppConstants.textColorDark.withOpacity(0.7)
-                          : AppConstants.textColor.withOpacity(0.7),
-                ),
-                selectedIcon: Icon(
-                  Icons.psychology_rounded,
-                  color:
-                      isDarkMode
-                          ? AppConstants.primaryColorDark
-                          : AppConstants.primaryColor,
-                ),
-                label: 'Mood',
               ),
               NavigationDestination(
                 icon: Icon(
