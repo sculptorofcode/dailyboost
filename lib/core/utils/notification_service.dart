@@ -117,6 +117,7 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
+        payload: '',
       );
       // print('[NotificationService] zonedSchedule completed successfully');
     } catch (e, st) {

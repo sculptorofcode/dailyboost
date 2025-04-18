@@ -29,6 +29,17 @@ A modern, cross-platform app designed to uplift your day with curated quotes, vi
 - [ ] Quote Background Customization
 - [ ] Streaks & Achievements
 - [ ] Voice Playback (text-to-speech)
+- [x] Favorite/Bookmark Quotes
+- [ ] Cloud Sync (across devices)
+- [ ] Offline Mode
+- [ ] Daily Reminders
+- [ ] Customizable Notification Time
+- [ ] Export Quotes (PDF/CSV)
+- [ ] Multi-language Support
+- [x] Animated Quote Transitions
+- [ ] In-app Feedback & Suggestions
+- [ ] Quote Submission by Users
+- [ ] Integration with Calendar Events
 
 ---
 
