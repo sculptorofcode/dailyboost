@@ -3,6 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../features/auth/logic/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -244,6 +246,45 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
+                      
+                      const SizedBox(
+                        height:
+                            24,
+                      ),
+                      Text(
+                        'Account',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color:
+                              theme.colorScheme.primary,
+                          fontWeight:
+                              FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(
+                        height:
+                            16,
+                      ),
+                      _buildSettingsCard(
+                        child: _buildTappableTile(
+                          title:
+                              'Logout',
+                          subtitle:
+                              'Sign out of your account',
+                          icon:
+                              Icons.logout_rounded,
+                          onTap: () {
+                            _showLogoutConfirmation(
+                              context,
+                            );
+                          },
+                        ),
+                      ),
+
+                      // Add extra bottom padding for navigation bar
+                      const SizedBox(
+                        height:
+                            80,
+                      ),
                     ],
                   ),
                 ),
@@ -252,6 +293,89 @@ class _SettingsScreenState extends State<SettingsScreen>
           ],
         ),
       ),
+    );
+  }
+
+  void _showLogoutConfirmation(
+    BuildContext context,
+  ) {
+    showDialog(
+      context:
+          context,
+      builder:
+          (
+            context,
+          ) => AlertDialog(
+            title: Text(
+              'Logout',
+              style: TextStyle(
+                color:
+                    Theme.of(
+                      context,
+                    ).colorScheme.primary,
+                fontWeight:
+                    FontWeight.bold,
+              ),
+            ),
+            content: const Text(
+              'Are you sure you want to logout from your account?',
+            ),
+            actions: [
+              TextButton(
+                onPressed:
+                    () =>
+                        Navigator.of(
+                          context,
+                        ).pop(),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color:
+                        Theme.of(
+                          context,
+                        ).colorScheme.primary,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pop();
+                  // Perform logout
+                  final authProvider = Provider.of<
+                    UserAuthProvider
+                  >(
+                    context,
+                    listen:
+                        false,
+                  );
+                  authProvider.logout();
+                  context.go(
+                    '/login',
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(
+                        context,
+                      ).colorScheme.secondary,
+                ),
+                child: const Text(
+                  'Logout',
+                ),
+              ),
+            ],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                AppConstants.baseRadius,
+              ),
+            ),
+            backgroundColor:
+                Theme.of(
+                  context,
+                ).cardColor,
+          ),
     );
   }
 

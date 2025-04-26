@@ -36,7 +36,7 @@ android {
     signingConfigs {
         create("release") {
             // Use values from key.properties or provide defaults/placeholders
-            storeFile = file(keyProperties.getProperty("storeFile") ?: "../dailyboost-key.jks") // Use getProperty for safety
+            storeFile = file(keyProperties.getProperty("storeFile") ?: "") // Use getProperty for safety
             storePassword = keyProperties.getProperty("storePassword") ?: ""
             keyAlias = keyProperties.getProperty("keyAlias") ?: ""
             keyPassword = keyProperties.getProperty("keyPassword") ?: ""
@@ -48,7 +48,7 @@ android {
         applicationId = "com.example.dailyboost"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 // Updated from flutter.minSdkVersion to 23 for Firebase Auth compatibility
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

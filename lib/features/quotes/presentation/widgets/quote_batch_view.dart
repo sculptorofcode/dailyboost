@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:dailyboost/core/theme/theme_provider.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_bloc.dart';
@@ -5,13 +9,10 @@ import 'package:dailyboost/features/quotes/logic/bloc/home/home_event.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/favorite_check.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/quote_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
-import 'package:flutter/rendering.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 class QuoteBatchView extends StatefulWidget {
   final List<QuoteModel> quotes;

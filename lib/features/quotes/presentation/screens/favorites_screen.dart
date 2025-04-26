@@ -1,16 +1,18 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
 import '../../../../core/utils/constants.dart';
 import '../../data/models/quote_model.dart';
 import '../../logic/bloc/favorites/favorites_bloc.dart';
 import '../../logic/bloc/favorites/favorites_event.dart';
 import '../../logic/bloc/favorites/favorites_state.dart';
-import 'package:share_plus/share_plus.dart';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
-import 'package:flutter/rendering.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 enum SortOption { newest, oldest, authorAZ, authorZA, moodAZ, moodZA }
 

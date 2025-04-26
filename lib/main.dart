@@ -1,24 +1,32 @@
 import 'package:dailyboost/features/quotes/logic/bloc/favorites/favorites_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/favorites/favorites_event.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'features/quotes/logic/bloc/quote/quote_bloc.dart';
-import 'features/quotes/logic/bloc/home/home_bloc.dart';
-import 'features/quotes/presentation/screens/home_screen.dart';
-import 'features/quotes/presentation/screens/favorites_screen.dart';
-import 'features/quotes/presentation/screens/settings_screen.dart';
+
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/constants.dart';
-import 'core/utils/notification_service.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'features/auth/logic/providers/auth_provider.dart';
+import 'features/auth/presentation/screens/auth_wrapper.dart';
+import 'features/auth/presentation/screens/forgot_password_screen.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/signup_screen.dart';
+import 'features/quotes/logic/bloc/home/home_bloc.dart';
+import 'features/quotes/logic/bloc/quote/quote_bloc.dart';
+import 'features/quotes/presentation/screens/favorites_screen.dart';
+import 'features/quotes/presentation/screens/home_screen.dart';
+import 'features/quotes/presentation/screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -41,35 +49,6 @@ void main() async {
   await Hive.openBox<String>('favorite_quotes');
   await Hive.openBox<String>('app_settings');
 
-  // Initialize notifications only for mobile platforms
-  if (!kIsWeb) {
-    final notificationService = NotificationService();
-    await notificationService.init();
-    await notificationService.requestNotificationPermission();
-
-    // Schedule daily notifications at multiple times with unique IDs
-    await notificationService.scheduleDailyQuoteNotification(
-      id: 1,
-      hour: 9,
-      minute: 0,
-      quote: 'Start your day with inspiration!',
-    );
-
-    await notificationService.scheduleDailyQuoteNotification(
-      id: 2,
-      hour: 14,
-      minute: 30,
-      quote: 'Midday motivation boost!',
-    );
-
-    await notificationService.scheduleDailyQuoteNotification(
-      id: 3,
-      hour: 16,
-      minute: 25,
-      quote: 'Evening inspiration to end your day well!',
-    );
-  }
-
   runApp(const MyApp());
 }
 
@@ -81,6 +60,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UserAuthProvider()),
         BlocProvider<QuoteBloc>(create: (_) => QuoteBloc()),
         BlocProvider<HomeBloc>(create: (_) => HomeBloc()),
         BlocProvider<FavoritesBloc>(create: (_) => FavoritesBloc()),
@@ -101,12 +81,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Router configuration with authentication
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
+    // Auth routes
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+
+    // Main app shell with bottom navigation
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return ScaffoldWithNavBar(navigationShell: navigationShell);
+        // Wrap the scaffold with AuthWrapper to handle auth state
+        return AuthWrapper(
+          child: ScaffoldWithNavBar(navigationShell: navigationShell),
+        );
       },
       branches: [
         // Home branch
@@ -136,6 +129,28 @@ final GoRouter _router = GoRouter(
       ],
     ),
   ],
+  redirect: (context, state) {
+    final authProvider = Provider.of<UserAuthProvider>(context, listen: false);
+    final isLoggedIn = authProvider.isAuthenticated;
+
+    final isGoingToAuthScreen =
+        state.matchedLocation == '/login' ||
+        state.matchedLocation == '/signup' ||
+        state.matchedLocation == '/forgot-password';
+
+    // If not logged in and not going to auth screen, redirect to login
+    if (!isLoggedIn && !isGoingToAuthScreen) {
+      return '/login';
+    }
+
+    // If logged in and going to auth screen, redirect to home
+    if (isLoggedIn && isGoingToAuthScreen) {
+      return '/';
+    }
+
+    // Allow the navigation to proceed
+    return null;
+  },
 );
 
 class ScaffoldWithNavBar extends StatelessWidget {
