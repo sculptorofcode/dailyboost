@@ -13,7 +13,7 @@ class QuoteRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   // Local storage
-  Box<List<dynamic>> _favoritesBox = Hive.box<List<dynamic>>('favorites');
+  late Box<List<dynamic>> _favoritesBox;
   
   // Cache of all quotes
   List<QuoteModel> _allQuotes = [];
@@ -60,6 +60,7 @@ class QuoteRepository {
       // Try to fetch from Firestore first
       var query = _firestore
           .collection('custom_quotes')
+          .orderBy('createdAt', descending: true)
           .limit(limit);
       
       if (_lastDocument != null) {
@@ -114,53 +115,83 @@ class QuoteRepository {
       
     return shuffled.take(min(count, shuffled.length)).toList();
   }
-  
-  // Fetch a quote by mood
-  Future<QuoteModel?> fetchQuoteByMood(String mood) async {
+    // Fetch a quote by mood
+  Future<List<QuoteModel>> fetchQuoteByMood(String mood, {int? startAfter}) async {
     try {
+      // debugPrint('Fetching quote by mood: $mood ${startAfter != null ? ', starting after: $startAfter' : ''}');
+      
+      // If it's not paginated (no startAfter) or first request, reset pagination
+      if (startAfter == null || startAfter == 0) {
+        resetPagination();
+      }
+      
       // Try to fetch from Firestore first
-      final snapshot = await _firestore
-          .collection('quotes')
+      var query = _firestore
+          .collection('custom_quotes')
           .where('mood', isEqualTo: mood)
-          .limit(10)
-          .get();
+          .orderBy('createdAt', descending: true)
+          .limit(20);
+      
+      // Add pagination if we're loading more and have a lastDocument
+      if (startAfter != null && startAfter > 0 && _lastDocument != null) {
+        query = query.startAfterDocument(_lastDocument!);
+      }
+
+      final snapshot = await query.get();
+
+      // debugPrint('Fetched ${snapshot.docs.length} quotes by mood from Firestore');
       
       if (snapshot.docs.isNotEmpty) {
-        // Pick a random quote from the results
-        final random = Random();
-        final randomIndex = random.nextInt(snapshot.docs.length);
-        final doc = snapshot.docs[randomIndex];
+        // Update pagination state
+        _lastDocument = snapshot.docs.last;
+        _hasMore = snapshot.docs.length >= 20;
         
-        final data = doc.data();
-        data['id'] = doc.id;
-        return QuoteModel.fromJson(data);
+        // Convert to QuoteModel objects
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id; // Ensure ID is included
+          return QuoteModel.fromJson(data);
+        }).toList();
       } else {
-        // Try to find a local quote with matching mood
+        // If no online quotes, return from local cache
         final matchingQuotes = _allQuotes
             .where((quote) => quote.mood.toLowerCase() == mood.toLowerCase())
             .toList();
             
         if (matchingQuotes.isNotEmpty) {
-          final random = Random();
-          return matchingQuotes[random.nextInt(matchingQuotes.length)];
+          // If we have a startAfter value, handle pagination for local quotes
+          if (startAfter != null && startAfter > 0) {
+            final end = min(startAfter + 20, matchingQuotes.length);
+            if (startAfter < matchingQuotes.length) {
+              return matchingQuotes.sublist(startAfter, end);
+            } else {
+              return []; // No more quotes
+            }
+          } else {
+            return matchingQuotes.take(min(20, matchingQuotes.length)).toList();
+          }
         }
         
-        return null;
+        return [];
       }
     } catch (e) {
       debugPrint('Error fetching quote by mood: $e');
-      
-      // Fallback to local quotes
+      // Fallback to local quotes on error
       final matchingQuotes = _allQuotes
           .where((quote) => quote.mood.toLowerCase() == mood.toLowerCase())
           .toList();
           
-      if (matchingQuotes.isNotEmpty) {
-        final random = Random();
-        return matchingQuotes[random.nextInt(matchingQuotes.length)];
+      // Handle pagination for local quotes on error too
+      if (startAfter != null && startAfter > 0) {
+        final end = min(startAfter + 20, matchingQuotes.length);
+        if (startAfter < matchingQuotes.length) {
+          return matchingQuotes.sublist(startAfter, end);
+        } else {
+          return []; // No more quotes
+        }
+      } else {
+        return matchingQuotes.take(min(20, matchingQuotes.length)).toList();
       }
-      
-      return null;
     }
   }
   
@@ -250,9 +281,15 @@ class QuoteRepository {
   // Get all favorite quote IDs
   Future<List<String>> getFavorites() async {
     try {
-      // Get from Hive box
-      final favorites = _favoritesBox.get('favorites', defaultValue: <dynamic>[])?.cast<String>() ?? [];
-      return favorites;
+      // Check if box is initialized
+      _favoritesBox = await Hive.openBox<List<dynamic>>('favorites');
+      if (Hive.isBoxOpen('favorites')) {
+        final favorites = _favoritesBox.get('favorites', defaultValue: <dynamic>[])?.cast<String>() ?? [];
+        return favorites;
+      } else {
+        final favorites = _favoritesBox.get('favorites', defaultValue: <dynamic>[])?.cast<String>() ?? [];
+        return favorites;
+      }
     } catch (e) {
       debugPrint('Error getting favorites: $e');
       return [];
@@ -268,9 +305,132 @@ class QuoteRepository {
   // Sync favorites between Firestore and local storage
   Future<void> syncFavoritesToLocal(List<String> favoriteIds) async {
     try {
+      _favoritesBox = await Hive.openBox<List<dynamic>>('favorites');
       await _favoritesBox.put('favorites', favoriteIds);
     } catch (e) {
       debugPrint('Error syncing favorites: $e');
     }
+  }
+  
+  // LIKE MANAGEMENT
+  Future<void> addLike(QuoteModel quote) async {
+    try {
+      debugPrint('Adding like for quote ID: ${quote.id}');
+      if (_currentUserId != null) {
+        await _firestore
+            .collection('user_likes')
+            .doc(_currentUserId)
+            .collection('quotes')
+            .doc(quote.id)
+            .set({
+              'timestamp': FieldValue.serverTimestamp(),
+              ...quote.toJson(),
+            });
+        debugPrint('Like added for quote ID: ${quote.id}');
+      }
+      // Optionally, you can add local storage for likes if needed
+    } catch (e) {
+      debugPrint('Error adding like: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> removeLike(String id) async {
+    try {
+      if (_currentUserId != null) {
+        await _firestore
+            .collection('user_likes')
+            .doc(_currentUserId)
+            .collection('quotes')
+            .doc(id)
+            .delete();
+      }
+      // Optionally, remove from local storage if you implement it
+    } catch (e) {
+      debugPrint('Error removing like: $e');
+      rethrow;
+    }
+  }
+
+  // Fetch all liked quote IDs for the current user
+  Future<List<String>> getLikedQuoteIds() async {
+    // debugPrint('Fetching liked quote IDs for user ID: $_currentUserId');
+    if (_currentUserId == null) return [];
+    try {
+      final snapshot = await _firestore
+          .collection('user_likes')
+          .doc(_currentUserId)
+          .collection('quotes')
+          .get();
+      // debugPrint('Fetched ${snapshot.docs.length} liked quote IDs');
+      return snapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      debugPrint('Error fetching liked quote IDs: $e');
+      return [];
+    }
+  }
+
+  // Increment view count for a quote
+  Future<void> incrementViewCount(String quoteId) async {
+    try {
+      await _firestore.collection('quotes').doc(quoteId).update({
+        'viewCount': FieldValue.increment(1),
+      });
+    } catch (e) {
+      debugPrint('Error incrementing view count: $e');
+    }
+  }
+
+  // Fetch view count for a quote
+  Future<int> fetchViewCount(String quoteId) async {
+    try {
+      final doc = await _firestore.collection('quotes').doc(quoteId).get();
+      if (doc.exists && doc.data() != null && doc.data()!.containsKey('viewCount')) {
+        return (doc.data()!['viewCount'] as int?) ?? 0;
+      }
+      return 0;
+    } catch (e) {
+      debugPrint('Error fetching view count: $e');
+      return 0;
+    }
+  }
+
+  // Track a user's view of a quote and increment global view count only if not already viewed
+  Future<void> trackUserView(String quoteId) async {
+    if (_currentUserId == null) return;
+    final userViewRef = _firestore
+        .collection('user_views')
+        .doc(_currentUserId)
+        .collection('quotes')
+        .doc(quoteId);
+    final alreadyViewed = (await userViewRef.get()).exists;
+    if (!alreadyViewed) {
+      // Mark as viewed
+      await userViewRef.set({'timestamp': FieldValue.serverTimestamp()});
+      // Increment global view count
+      await incrementViewCount(quoteId);
+    }
+  }
+
+  // Fetch all viewed quote IDs for the current user
+  Future<List<String>> getViewedQuoteIds() async {
+    if (_currentUserId == null) return [];
+    try {
+      final snapshot = await _firestore
+          .collection('user_views')
+          .doc(_currentUserId)
+          .collection('quotes')
+          .get();
+      return snapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      debugPrint('Error fetching viewed quote IDs: $e');
+      return [];
+    }
+  }
+
+  // Filter unread quotes from a list of quotes
+  Future<List<QuoteModel>> filterUnreadQuotes(List<QuoteModel> allQuotes) async {
+    final viewedIds = await getViewedQuoteIds();
+    return allQuotes.where((q) => !viewedIds.contains(q.id)).toList();
   }
 }

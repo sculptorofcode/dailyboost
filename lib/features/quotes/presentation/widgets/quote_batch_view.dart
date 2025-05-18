@@ -12,6 +12,7 @@ import 'package:dailyboost/features/quotes/presentation/widgets/loading.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/quote_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -208,12 +209,15 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
             setState(() {
               _currentPage = index;
             });
-        
+            // Dispatch ViewQuoteEvent for the newly visible quote
+            if (index < widget.quotes.length) {
+              final quote = widget.quotes[index];
+              context.read<HomeBloc>().add(ViewQuoteEvent(quote.id));
+            }
             // Check if we need to load more quotes
             if (index >= widget.quotes.length - 5 && !_showLoadingPage) {
               _loadMoreQuotesWithIndicator();
             }
-        
             // Reset and restart animation when page changes
             _animationController.reset();
             _animationController.forward();
@@ -222,115 +226,145 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
             // If we're showing the loading page and this is the last index, show loading indicator
             if (_showLoadingPage && index == widget.quotes.length) {
               return const Center(child: LoadingIndicator());
-            }
-            
+            }            
             final quote = widget.quotes[index];
             final GlobalKey quoteKey = GlobalKey();
-        
-            return FavoriteCheck(
-              key: ValueKey("favorite-${quote.id}"),
-              quote: quote,
-              builder:
-                  (isFavorite, toggleFavorite) => QuoteView(
-                    quote: quote,
-                    isDarkMode: widget.isDarkMode,
-                    fontSize: fontSize,
-                    quoteStyle: quoteStyle,
-                    animationController: _animationController,
-                    opacityAnimation: _opacityAnimation,
-                    scaleAnimation: _scaleAnimation,
-                    rotateAnimation: _rotateAnimation,
-                    isFavorite: isFavorite,
-                    onNewQuote: () {
-                      final nextPage = (_currentPage + 1) % widget.quotes.length;
-                      _pageController.animateToPage(
-                        nextPage,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    onSaveToFavorites: () {
-                      toggleFavorite();
-                      if (!isFavorite) {
-                        context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Added to favorites!'),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            duration: const Duration(milliseconds: 300),
-                          ),
-                        );
-                      } else {
-                        context.read<HomeBloc>().add(
-                          RemoveFromFavoritesEvent(quote.id),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Removed from favorites'),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            duration: const Duration(milliseconds: 300),
-                          ),
-                        );
-                      }
-                    },
-                    onShareQuote: () => _shareQuoteImageWithKey(quoteKey),
-                    quoteKey: quoteKey,
-                  ),
-            );
-          },
-        ),
-        
-        // Loading indicator overlay for "load more" operations
-        if (_isLoadingMore)
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+            // Check if this quote is liked using BlocBuilder
+            return BlocBuilder<HomeBloc, HomeState>(
+              buildWhen: (previous, current) {
+                // Only rebuild when liked status or view count changes for this quote
+                if (previous is QuoteBatchLoaded && current is QuoteBatchLoaded) {
+                  return previous.isQuoteLiked(quote.id) != current.isQuoteLiked(quote.id) ||
+                         previous.getViewCount(quote.id) != current.getViewCount(quote.id);
+                }
+                return true;
+              },
+              builder: (context, state) {
+                final bool isLiked = state is QuoteBatchLoaded 
+                    ? state.isQuoteLiked(quote.id) 
+                    : false;
+                final int viewCount = state is QuoteBatchLoaded
+                    ? state.getViewCount(quote.id)
+                    : 0;
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).colorScheme.primary,
+                    Expanded(
+                      child: FavoriteCheck(
+                        key: ValueKey("favorite-${quote.id}"),
+                        quote: quote,
+                        builder: (isFavorite, toggleFavorite) => QuoteView(
+                          quote: quote,
+                          isDarkMode: widget.isDarkMode,
+                          fontSize: fontSize,
+                          quoteStyle: quoteStyle,
+                          animationController: _animationController,
+                          opacityAnimation: _opacityAnimation,
+                          scaleAnimation: _scaleAnimation,
+                          rotateAnimation: _rotateAnimation,
+                          isFavorite: isFavorite,
+                          isLiked: isLiked,
+                          onLike: () {
+                            final homeBloc = context.read<HomeBloc>();
+                            final currentState = homeBloc.state;
+                            if (currentState is QuoteBatchLoaded) {
+                              if (currentState.isQuoteLiked(quote.id)) {
+                                homeBloc.add(UnlikeQuoteEvent(quote.id));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Removed from liked quotes'),
+                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    duration: const Duration(milliseconds: 800),
+                                  ),
+                                );
+                              } else {
+                                homeBloc.add(LikeQuoteEvent(quote));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Added to liked quotes!'),
+                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    duration: const Duration(milliseconds: 800),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          onSaveToFavorites: () {
+                            toggleFavorite();
+                            if (!isFavorite) {
+                              context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Added to favorites!'),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.secondary,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  duration: const Duration(milliseconds: 300),
+                                ),
+                              );
+                            } else {
+                              context.read<HomeBloc>().add(RemoveFromFavoritesEvent(quote.id));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Removed from favorites'),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  duration: const Duration(milliseconds: 300),
+                                ),
+                              );
+                            }
+                          },
+                          onShareQuote: () => _shareQuoteImageWithKey(quoteKey),
+                          quoteKey: quoteKey,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Loading more quotes...',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 14,
+                    // View counter below the quote
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.visibility, size: 20, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text('$viewCount views', style: TextStyle(color: Colors.grey)),
+                        ],
                       ),
                     ),
                   ],
+                );
+              },
+            );
+          },
+        ),
+        // Loading indicator overlay for "load more" operations
+        if (_isLoadingMore)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: widget.isDarkMode
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                  : Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              height: 50,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
                 ),
               ),
             ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../features/quotes/data/models/custom_quote_model.dart';
-import '../../features/quotes/presentation/screens/custom_quotes/create_quote_screen.dart';
 import 'routes.dart';
 
 /// Navigation utility class to replace go_router context.go() methods
@@ -33,26 +31,6 @@ class NavigationUtils {
   /// Navigate to forgot password screen
   static void navigateToForgotPassword(BuildContext context) {
     Navigator.of(context).pushNamed(Routes.forgotPassword);
-  }
-
-  /// Navigate to create quote screen
-  static void navigateToCreateQuote(BuildContext context) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
-        builder: (_) => const CreateQuoteScreen(isEditing: false),
-        fullscreenDialog: true,
-      ),
-    );
-  }
-
-  /// Navigate to edit quote screen
-  static void navigateToEditQuote(BuildContext context, CustomQuoteModel quote) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
-        builder: (_) => CreateQuoteScreen(isEditing: true, quote: quote),
-        fullscreenDialog: true,
-      ),
-    );
   }
 
   /// Navigate to favorites screen

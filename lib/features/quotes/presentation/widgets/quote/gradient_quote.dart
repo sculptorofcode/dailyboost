@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
 import 'package:dailyboost/core/utils/constants.dart';
 
-class GradientQuote extends StatelessWidget {
-  final QuoteModel quote;
+class GradientQuote extends StatelessWidget {  final QuoteModel quote;
   final bool isDarkMode;
   final double fontSize;
   final bool isFavorite;
+  final bool isLiked;
   final AnimationController animationController;
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
-  final VoidCallback onNewQuote;
+  final VoidCallback onLike;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final GlobalKey quoteKey;
@@ -21,10 +21,11 @@ class GradientQuote extends StatelessWidget {
     required this.isDarkMode,
     required this.fontSize,
     this.isFavorite = false,
+    this.isLiked = false,
     required this.animationController,
     required this.opacityAnimation,
     required this.scaleAnimation,
-    required this.onNewQuote,
+    required this.onLike,
     required this.onSaveToFavorites,
     required this.onShareQuote,
     required this.quoteKey,
@@ -212,10 +213,11 @@ class GradientQuote extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildGlassButton(
-                            icon: Icons.refresh_rounded,
-                            onTap: onNewQuote,
+                        children: [                          _buildGlassButton(
+                            icon: isLiked 
+                                ? Icons.thumb_up
+                                : Icons.thumb_up_alt_outlined,
+                            onTap: onLike,
                             color: gradientColors.first,
                           ),
                           const SizedBox(width: 24),

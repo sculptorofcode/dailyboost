@@ -7,10 +7,11 @@ class MinimalQuote extends StatelessWidget {
   final bool isDarkMode;
   final double fontSize;
   final bool isFavorite;
+  final bool isLiked;
   final AnimationController animationController;
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
-  final VoidCallback onNewQuote;
+  final VoidCallback onLike;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final GlobalKey quoteKey;
@@ -20,10 +21,11 @@ class MinimalQuote extends StatelessWidget {
     required this.isDarkMode,
     required this.fontSize,
     this.isFavorite = false,
+    this.isLiked = false,
     required this.animationController,
     required this.opacityAnimation,
     required this.scaleAnimation,
-    required this.onNewQuote,
+    required this.onLike,
     required this.onSaveToFavorites,
     required this.onShareQuote,
     required this.quoteKey,
@@ -138,10 +140,15 @@ class MinimalQuote extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: onNewQuote,
-                      icon: const Icon(Icons.refresh_rounded, size: 28),
-                      color: Theme.of(context).colorScheme.primary,
-                      tooltip: 'New Quote',
+                      onPressed: onLike,
+                      icon: Icon(
+                        isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                        size: 28,
+                      ),
+                      color: isLiked
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                      tooltip: isLiked ? 'Unlike' : 'Like',
                     ),
                     const SizedBox(width: 40),
                     IconButton(

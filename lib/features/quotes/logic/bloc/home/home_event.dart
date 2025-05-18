@@ -28,7 +28,11 @@ class RefreshQuotesEvent extends HomeEvent {
 }
 
 class LoadMoreQuotesEvent extends HomeEvent {
-  const LoadMoreQuotesEvent();
+  final String? mood;
+  const LoadMoreQuotesEvent({this.mood});
+  
+  @override
+  List<Object?> get props => [mood];
 }
 
 class AddToFavoritesEvent extends HomeEvent {
@@ -44,3 +48,38 @@ class RemoveFromFavoritesEvent extends HomeEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class LikeQuoteEvent extends HomeEvent {
+  final QuoteModel quote;
+  const LikeQuoteEvent(this.quote);
+  @override
+  List<Object?> get props => [quote];
+}
+
+class UnlikeQuoteEvent extends HomeEvent {
+  final String id;
+  const UnlikeQuoteEvent(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
+class ViewQuoteEvent extends HomeEvent {
+  final String quoteId;
+  const ViewQuoteEvent(this.quoteId);
+  @override
+  List<Object?> get props => [quoteId];
+}
+
+class SelectQuoteFilterEvent extends HomeEvent {
+  final QuoteFilter filter;
+  const SelectQuoteFilterEvent(this.filter);
+  @override
+  List<Object?> get props => [filter];
+}
+
+class LoadUnreadQuotesEvent extends HomeEvent {
+  const LoadUnreadQuotesEvent();
+}
+
+// Enum for quote filter
+enum QuoteFilter { all, unread }

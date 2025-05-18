@@ -14,10 +14,11 @@ class QuoteView extends StatelessWidget {
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
   final Animation<double> rotateAnimation;
-  final VoidCallback onNewQuote;
+  final VoidCallback onLike;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final bool isFavorite;
+  final bool isLiked;
   final GlobalKey quoteKey;
 
   const QuoteView({
@@ -29,10 +30,11 @@ class QuoteView extends StatelessWidget {
     required this.opacityAnimation,
     required this.scaleAnimation,
     required this.rotateAnimation,
-    required this.onNewQuote,
+    required this.onLike,
     required this.onSaveToFavorites,
     required this.onShareQuote,
     this.isFavorite = false,
+    this.isLiked = false,
     required this.quoteKey,
     super.key,
   });
@@ -48,11 +50,11 @@ class QuoteView extends StatelessWidget {
           fontSize: fontSize,
           animationController: animationController,
           opacityAnimation: opacityAnimation,
-          scaleAnimation: scaleAnimation,
-          onNewQuote: onNewQuote,
+          scaleAnimation: scaleAnimation,          onLike: onLike,
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          isLiked: isLiked,
           quoteKey: quoteKey,
         );
       case 'Gradient':
@@ -63,10 +65,11 @@ class QuoteView extends StatelessWidget {
           animationController: animationController,
           opacityAnimation: opacityAnimation,
           scaleAnimation: scaleAnimation,
-          onNewQuote: onNewQuote,
+          onLike: onLike,
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
+          isLiked: isLiked,
           quoteKey: quoteKey,
         );
       case 'Classic':
@@ -77,12 +80,12 @@ class QuoteView extends StatelessWidget {
           animationController: animationController,
           opacityAnimation: opacityAnimation,
           scaleAnimation: scaleAnimation,
-          rotateAnimation: rotateAnimation,
-          onNewQuote: onNewQuote,
+          rotateAnimation: rotateAnimation,          onLike: onLike,
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
           quoteKey: quoteKey,
+          isLiked: isLiked,
         );
       case 'Card':
       default:
@@ -94,11 +97,12 @@ class QuoteView extends StatelessWidget {
           opacityAnimation: opacityAnimation,
           scaleAnimation: scaleAnimation,
           rotateAnimation: rotateAnimation,
-          onNewQuote: onNewQuote,
+          onLike: onLike,
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
           quoteKey: quoteKey,
+          isLiked: isLiked,
         );
     }
   }

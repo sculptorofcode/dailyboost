@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/utils/constants.dart';
+import '../../../../core/navigation/navigation_utils.dart';
 import '../../data/models/quote_model.dart';
 import '../../logic/bloc/favorites/favorites_bloc.dart';
 import '../../logic/bloc/favorites/favorites_event.dart';
@@ -282,10 +283,10 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
+            const SizedBox(height: 32),            
+            ElevatedButton.icon(              
               onPressed: () {
-                Navigator.of(context).pop();
+                NavigationUtils.navigateToHome(context);
               },
               icon: const Icon(Icons.explore),
               label: const Text('Explore Quotes'),

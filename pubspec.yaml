@@ -6,7 +6,7 @@ version: 1.0.0+1
 environment:
   sdk: ^3.7.2
 
-dependencies:
+dependencies:  
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
@@ -14,10 +14,8 @@ dependencies:
   bloc: ^9.0.0
   equatable: ^2.0.5
   intl: ^0.20.2
-  http: ^1.1.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  timezone: ^0.10.0
   dio: ^5.8.0+1
   share_plus: ^11.0.0
   provider: ^6.1.4
@@ -26,9 +24,8 @@ dependencies:
   google_sign_in: ^6.3.0
   device_info_plus: ^11.4.0  
   geolocator: ^14.0.0
-  uuid: ^4.5.1
+  uuid: ^4.5.1  
   shimmer: ^3.0.0
-  # Updated Firebase dependencies with compatible versions
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.2
   cloud_firestore: ^5.6.6

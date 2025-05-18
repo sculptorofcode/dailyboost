@@ -184,5 +184,52 @@ service cloud.firestore {
                               resource.data.userId == request.auth.uid &&
                               resource.data.source == "user";
     }
+
+    // USER LIKES COLLECTION
+    // Users can only read and write their own likes
+    match /user_likes/{userId} {
+      allow read, write: if isCurrentUser(userId);
+
+      // Subcollection of liked quotes
+      match /quotes/{quoteId} {
+        allow read: if isCurrentUser(userId);
+
+        // Validate liked quote data on write
+        function isValidLikedQuote() {
+          let data = request.resource.data;
+          return data.id is string &&
+                data.content is string && data.content.size() > 0 &&
+                data.author is string &&
+                data.mood is string &&
+                (data.timestamp == null || data.timestamp is timestamp);
+        }
+
+        allow create, update: if isCurrentUser(userId) && isValidLikedQuote();
+        allow delete: if isCurrentUser(userId);
+      }
+    }
+    // USER VIEWS COLLECTION
+    // Users can only read and write their own view records
+    match /user_views/{userId} {
+      allow read, write: if isCurrentUser(userId);
+      match /quotes/{quoteId} {
+        allow read, write: if isCurrentUser(userId);
+      }
+    }
+    
+    // Allow authenticated users to increment viewCount on any quote
+    match /quotes/{quoteId} {
+      allow update: if (
+        // Allow normal user updates for their own quotes
+        (isAuthenticated() && resource.data.userId == request.auth.uid && resource.data.source == "user") ||
+        // Allow viewCount-only increments for any authenticated user
+        (
+          isAuthenticated() &&
+          request.resource.data.keys().hasOnly(['viewCount']) &&
+          request.resource.data.viewCount is int &&
+          request.resource.data.viewCount == resource.data.viewCount + 1
+        )
+      );
+    }
   }
 }

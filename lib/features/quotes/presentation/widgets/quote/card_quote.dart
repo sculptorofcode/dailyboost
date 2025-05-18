@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
 import 'package:dailyboost/core/utils/constants.dart';
 
-class CardQuote extends StatelessWidget {
+class CardQuote extends StatefulWidget {
   final QuoteModel quote;
   final bool isDarkMode;
   final double fontSize;
@@ -10,10 +10,11 @@ class CardQuote extends StatelessWidget {
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
   final Animation<double> rotateAnimation;
-  final VoidCallback onNewQuote;
+  final VoidCallback onLike;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final bool isFavorite;
+  final bool isLiked;
   final GlobalKey quoteKey;
 
   const CardQuote({
@@ -24,26 +25,32 @@ class CardQuote extends StatelessWidget {
     required this.opacityAnimation,
     required this.scaleAnimation,
     required this.rotateAnimation,
-    required this.onNewQuote,
+    required this.onLike,
     required this.onSaveToFavorites,
     required this.onShareQuote,
     this.isFavorite = false,
+    this.isLiked = false,
     required this.quoteKey,
     super.key,
   });
+  
+  @override
+  State<CardQuote> createState() => _CardQuoteState();
+}
 
+class _CardQuoteState extends State<CardQuote> {
   @override
   Widget build(BuildContext context) {
     return Center(
       child: AnimatedBuilder(
-        animation: animationController,
+        animation: widget.animationController,
         builder: (context, child) {
           return Opacity(
-            opacity: opacityAnimation.value,
+            opacity: widget.opacityAnimation.value,
             child: Transform.scale(
-              scale: scaleAnimation.value,
+              scale: widget.scaleAnimation.value,
               child: Transform.rotate(
-                angle: rotateAnimation.value,
+                angle: widget.rotateAnimation.value,
                 child: child,
               ),
             ),
@@ -57,7 +64,7 @@ class CardQuote extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 RepaintBoundary(
-                  key: quoteKey,
+                  key: widget.quoteKey,
                   child: Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
@@ -74,7 +81,7 @@ class CardQuote extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color:
-                                isDarkMode
+                                widget.isDarkMode
                                     ? AppConstants.shadowColorDark
                                     : AppConstants.shadowColor,
                             blurRadius: 8,
@@ -91,16 +98,16 @@ class CardQuote extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            quote.content,
+                            widget.quote.content,
                             style: Theme.of(
                               context,
                             ).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w500,
                               height: 1.5,
                               letterSpacing: 0.4,
-                              fontSize: fontSize,
+                              fontSize: widget.fontSize,
                               color:
-                                  isDarkMode
+                                  widget.isDarkMode
                                       ? AppConstants.textColorDark
                                       : AppConstants.textColor,
                             ),
@@ -123,7 +130,7 @@ class CardQuote extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      quote.author,
+                                      widget.quote.author,
                                       style: Theme.of(
                                         context,
                                       ).textTheme.titleMedium?.copyWith(
@@ -136,12 +143,12 @@ class CardQuote extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Mood: ${quote.mood}',
+                                      'Mood: ${widget.quote.mood}',
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodySmall?.copyWith(
                                         color:
-                                            isDarkMode
+                                            widget.isDarkMode
                                                 ? AppConstants.textColorDark
                                                     .withOpacity(0.7)
                                                 : AppConstants.textColor
@@ -159,26 +166,32 @@ class CardQuote extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 40),                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     IconButton(
-                      onPressed: onNewQuote,
-                      icon: Icon(Icons.refresh_rounded),
-                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: widget.onLike,
+                      icon: Icon(
+                        widget.isLiked
+                            ? Icons.thumb_up
+                            : Icons.thumb_up_alt_outlined,
+                      ),
+                      color: widget.isLiked
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.primary.withOpacity(0.8),
                     ),
                     IconButton(
-                      onPressed: onSaveToFavorites,
+                      onPressed: widget.onSaveToFavorites,
                       icon: Icon(
-                        isFavorite
+                        widget.isFavorite
                             ? Icons.favorite
                             : Icons.favorite_border_rounded,
                       ),
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     IconButton(
-                      onPressed: onShareQuote,
+                      onPressed: widget.onShareQuote,
                       icon: Icon(Icons.share_rounded),
                       color: Theme.of(context).colorScheme.tertiary,
                     ),

@@ -336,6 +336,12 @@ class _HomeScreenState extends State<HomeScreen>
       return;
     }
     
+    // Get the current mood from the state if it exists
+    String? currentMood;
+    if (currentState is QuoteBatchLoaded) {
+      currentMood = currentState.currentMood;
+    }
+    
     // Show a snackbar to indicate loading more quotes
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -350,7 +356,9 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(width: 16),
-            const Text('Loading more quotes...'),
+            Text(currentMood != null 
+              ? 'Loading more quotes for $currentMood...'
+              : 'Loading more quotes...'),
           ],
         ),
         duration: const Duration(milliseconds: 800),
@@ -361,8 +369,8 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
     
-    // Trigger quote loading through the HomeBloc
-    homeBloc.add(const LoadMoreQuotesEvent());
+    // Trigger quote loading through the HomeBloc with the current mood
+    homeBloc.add(LoadMoreQuotesEvent(mood: currentMood));
   }
 
   @override

@@ -1,10 +1,8 @@
+import 'package:dailyboost/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:dailyboost/features/auth/presentation/screens/login_screen.dart';
+import 'package:dailyboost/features/auth/presentation/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 
-import '../../features/auth/presentation/screens/forgot_password_screen.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/signup_screen.dart';
-import '../../features/quotes/data/models/custom_quote_model.dart';
-import '../../features/quotes/presentation/screens/custom_quotes/create_quote_screen.dart';
 import 'bottom_nav_scaffold.dart';
 
 class Routes {
@@ -51,17 +49,6 @@ class Routes {
       case Routes.settings:
         return MaterialPageRoute(
           builder: (_) => const BottomNavScaffold(initialIndex: settingsIndex),
-        );
-      case createQuote:
-        return MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => const CreateQuoteScreen(isEditing: false),
-        );
-      case editQuote:
-        final quote = settings.arguments as CustomQuoteModel?;
-        return MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => CreateQuoteScreen(isEditing: true, quote: quote),
         );
       default:
         return MaterialPageRoute(

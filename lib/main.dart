@@ -2,10 +2,8 @@ import 'package:dailyboost/core/navigation/app_navigation.dart';
 import 'package:dailyboost/core/utils/play_services_utils.dart';
 import 'package:dailyboost/core/widgets/exit_confirmation_wrapper.dart';
 import 'package:dailyboost/features/quotes/data/repositories/quote_repository.dart';
-import 'package:dailyboost/features/quotes/logic/bloc/custom_quotes/custom_quotes_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/favorites/favorites_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_bloc.dart';
-import 'package:dailyboost/features/quotes/logic/bloc/quote/quote_bloc.dart';
 import 'package:dailyboost/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -42,12 +40,12 @@ void main() async {
     // Continue app initialization even if Firebase fails
     // This prevents app crashes on devices without Google Play Services
   }
-
   // Initialize Hive for local storage
   await Hive.initFlutter();
   await Hive.openBox<String>('favorite_quotes');
   await Hive.openBox<String>('cached_quotes');
   await Hive.openBox<String>('frequent_quotes');
+  await Hive.openBox<String>('app_settings');
 
   // Initialize QuoteRepository
   final quoteRepository = QuoteRepository();
@@ -70,10 +68,6 @@ void main() async {
     ),
   );
 
-  await Hive.initFlutter();
-  await Hive.openBox<String>('favorite_quotes');
-  await Hive.openBox<String>('app_settings');
-
   runApp(const MyApp());
 }
 
@@ -86,10 +80,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserAuthProvider()),
-        BlocProvider<QuoteBloc>(create: (_) => QuoteBloc()),
         BlocProvider<HomeBloc>(create: (_) => HomeBloc()),
         BlocProvider<FavoritesBloc>(create: (_) => FavoritesBloc()),
-        BlocProvider<CustomQuotesBloc>(create: (_) => CustomQuotesBloc()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

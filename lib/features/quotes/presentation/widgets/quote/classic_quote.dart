@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
 import 'package:dailyboost/core/utils/constants.dart';
 
-class ClassicQuote extends StatelessWidget {
-  final QuoteModel quote;
+class ClassicQuote extends StatelessWidget {  final QuoteModel quote;
   final bool isDarkMode;
   final double fontSize;
   final bool isFavorite;
+  final bool isLiked;
   final AnimationController animationController;
   final Animation<double> opacityAnimation;
   final Animation<double> scaleAnimation;
   final Animation<double> rotateAnimation;
-  final VoidCallback onNewQuote;
+  final VoidCallback onLike;
   final VoidCallback onSaveToFavorites;
   final VoidCallback onShareQuote;
   final GlobalKey quoteKey;
@@ -21,11 +21,12 @@ class ClassicQuote extends StatelessWidget {
     required this.isDarkMode,
     required this.fontSize,
     this.isFavorite = false,
+    this.isLiked = false,
     required this.animationController,
     required this.opacityAnimation,
     required this.scaleAnimation,
     required this.rotateAnimation,
-    required this.onNewQuote,
+    required this.onLike,
     required this.onSaveToFavorites,
     required this.onShareQuote,
     required this.quoteKey,
@@ -241,11 +242,12 @@ class ClassicQuote extends StatelessWidget {
                 // Classic styled action buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildClassicButton(
-                      label: 'New Quote',
-                      icon: Icons.autorenew_rounded,
-                      onTap: onNewQuote,
+                  children: [                    _buildClassicButton(
+                      label: isLiked ? 'Liked' : 'Like',
+                      icon: isLiked 
+                          ? Icons.thumb_up 
+                          : Icons.thumb_up_alt_outlined,
+                      onTap: onLike,
                     ),
                     const SizedBox(width: 20),
                     _buildClassicButton(
