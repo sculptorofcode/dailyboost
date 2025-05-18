@@ -1,0 +1,4 @@
+com/google/android/gms/**
+com/google/firebase/**
+android/support/multidex/**
+androidx/multidex/**

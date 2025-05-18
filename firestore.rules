@@ -1,0 +1,188 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if the user is accessing their own data
+    function isCurrentUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to validate quote data
+    function isValidQuote(data) {
+      return data.content is string && data.content.size() > 0 &&
+             data.author is string && 
+             data.mood is string;
+    }
+    
+    // USERS COLLECTION
+    // Users can read and write only their own profile data
+    match /users/{userId} {
+      allow get, update, delete: if isCurrentUser(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Define what fields are allowed in a user profile
+      function isValidUserProfile() {
+        let data = request.resource.data;
+        return data.uid is string &&
+               data.uid == request.auth.uid &&
+               data.email is string &&
+               (data.displayName == null || data.displayName is string) &&
+               (data.photoURL == null || data.photoURL is string) &&
+               (data.lastActive == null || data.lastActive is timestamp) &&
+               (data.joinedOn == null || data.joinedOn is timestamp) &&
+               (data.location == null || 
+                (data.location is map && 
+                 data.location.latitude is number && 
+                 data.location.longitude is number));
+      }
+      
+      // Validate user profile updates
+      allow update: if isCurrentUser(userId) && isValidUserProfile();
+    }
+    
+    // USER FAVORITES COLLECTION
+    // Users can only read and write their own favorites
+    match /user_favorites/{userId} {
+      allow read, write: if isCurrentUser(userId);
+      
+      // Subcollection of favorite quotes
+      match /quotes/{quoteId} {
+        allow read: if isCurrentUser(userId);
+        
+        // Validate favorite quote data on write
+        function isValidFavoriteQuote() {
+          let data = request.resource.data;
+          return data.id is string &&
+                 data.content is string && data.content.size() > 0 &&
+                 data.author is string &&
+                 data.mood is string &&
+                 (data.timestamp == null || data.timestamp is timestamp);
+        }
+        
+        allow create, update: if isCurrentUser(userId) && isValidFavoriteQuote();
+        allow delete: if isCurrentUser(userId);
+      }    }
+      // UNIFIED QUOTES COLLECTION
+    // This collection stores both system-generated and user-created quotes
+    match /quotes/{quoteId} {
+      // Helper function to identify system-generated quotes
+      function isSystemQuote(data) {
+        return data.source == "system" || data.source == null;
+      }
+      
+      // Helper function to identify user-created quotes
+      function isUserQuote(data) {
+        return data.source == "user" && data.userId != null;
+      }
+      
+      // Helper function to determine if a quote is public
+      function isPublicQuote() {
+        return resource.data.isPublic == true || isSystemQuote(resource.data);
+      }
+      
+      // Allow anyone to list and get quotes (public read access)
+      allow list: if true;
+      allow get: if true;
+
+      // System quote validation function
+      function isValidSystemQuote() {
+        let data = request.resource.data;
+        return data.content is string && 
+               data.author is string &&
+               data.mood is string &&
+               data.createdAt is timestamp &&
+               (data.source == "system" || data.source == null);
+      }
+      
+      // User quote validation function
+      function isValidUserQuote() {
+        let data = request.resource.data;
+        return data.content is string && data.content.size() >= 3 &&
+               data.author is string && data.author.size() > 0 &&
+               data.mood is string &&
+               data.userId is string && data.userId == request.auth.uid &&
+               data.isPublic is bool &&
+               data.createdAt is timestamp &&
+               data.source == "user";
+      }
+      
+      // Allow API endpoints to create system quotes
+      allow create: if isValidSystemQuote() || 
+                      (isAuthenticated() && isValidUserQuote());
+      
+      // Allow service accounts and admin to write system quotes
+      allow write: if request.auth.token.email.matches('.*@dailyboost\\.app$') || 
+                     request.auth.token.admin == true;
+                     
+      // Allow users to update and delete their own quotes
+      allow update, delete: if isAuthenticated() && 
+                              resource.data.userId == request.auth.uid &&
+                              resource.data.source == "user";
+    }
+    // CUSTOM QUOTES COLLECTION
+    // This collection stores both system-generated and user-created quotes
+    match /custom_quotes/{quoteId} {
+      // Helper function to identify system-generated quotes
+      function isSystemQuote(data) {
+        return data.source == "system" || data.source == null;
+      }
+      
+      // Helper function to identify user-created quotes
+      function isUserQuote(data) {
+        return data.source == "user" && data.userId != null;
+      }
+      
+      // Helper function to determine if a quote is public
+      function isPublicQuote() {
+        return resource.data.isPublic == true || isSystemQuote(resource.data);
+      }
+      
+      // Allow anyone to read all quotes in the collection including the API endpoints
+      // This is needed for the daily-quote cron job to work
+      allow list: if true;
+      
+      // Allow reading individual quotes if they're public or owned by the user
+      allow get: if isPublicQuote() || 
+                   (isAuthenticated() && resource.data.userId == request.auth.uid);
+      
+      // System quote validation function
+      function isValidSystemQuote() {
+        let data = request.resource.data;
+        return data.content is string && 
+               data.author is string &&
+               data.mood is string &&
+               data.createdAt is timestamp &&
+               (data.source == "system" || data.source == null);
+      }
+      
+      // User quote validation function
+      function isValidUserQuote() {
+        let data = request.resource.data;
+        return data.content is string && data.content.size() >= 3 &&
+               data.author is string && data.author.size() > 0 &&
+               data.mood is string &&
+               data.userId is string && data.userId == request.auth.uid &&
+               data.isPublic is bool &&
+               data.createdAt is timestamp &&
+               data.source == "user";
+      }
+      
+      // Allow API endpoints to create system quotes without authentication
+      allow create: if isValidSystemQuote() || 
+                      (isAuthenticated() && isValidUserQuote());
+      
+      // Allow service accounts and admin to write system quotes
+      allow write: if request.auth.token.email.matches('.*@dailyboost\\.app$') || 
+                     request.auth.token.admin == true;
+                       // Allow users to update and delete their own quotes
+      allow update, delete: if isAuthenticated() && 
+                              resource.data.userId == request.auth.uid &&
+                              resource.data.source == "user";
+    }
+  }
+}

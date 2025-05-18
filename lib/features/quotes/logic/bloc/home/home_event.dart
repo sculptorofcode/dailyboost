@@ -23,6 +23,10 @@ class FetchQuoteBatchEvent extends HomeEvent {
   const FetchQuoteBatchEvent();
 }
 
+class RefreshQuotesEvent extends HomeEvent {
+  const RefreshQuotesEvent();
+}
+
 class LoadMoreQuotesEvent extends HomeEvent {
   const LoadMoreQuotesEvent();
 }

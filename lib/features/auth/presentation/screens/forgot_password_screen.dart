@@ -1,7 +1,7 @@
+import 'package:dailyboost/core/navigation/navigation_utils.dart';
 import 'package:dailyboost/features/auth/logic/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:dailyboost/core/utils/constants.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -121,7 +121,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 32),
         ElevatedButton(
-          onPressed: () => context.go('/login'),
+          onPressed: () => NavigationUtils.navigateToLogin(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: isDarkMode
                 ? AppConstants.primaryColorDark
@@ -244,7 +244,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           // Back to login
           TextButton(
             onPressed: () {
-              context.go('/login');
+              NavigationUtils.navigateToLogin(context);
             },
             child: Text(
               'Back to Login',

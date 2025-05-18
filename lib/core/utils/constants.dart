@@ -12,6 +12,7 @@ class AppConstants {
 
   // Light Theme Colors - New vibrant palette
   static const Color primaryColor = Color(0xFF4E55FD); // Vibrant blue
+  static const Color secondaryColor = Color(0xFF6C63FF); // Purple accent
   static const Color accentColor = Color(0xFFFF6B6B); // Coral red
   static const Color tertiaryColor = Color(0xFF4ECCA3); // Mint green
   static const Color lightScaffoldBg = Color(
@@ -35,6 +36,7 @@ class AppConstants {
   static const Color primaryColorDark = Color(
     0xFF7C84FF,
   ); // Lighter vibrant blue
+  static const Color secondaryColorDark = Color(0xFF9590FF); // Lighter purple
   static const Color accentColorDark = Color(0xFFFF8080); // Lighter coral
   static const Color tertiaryColorDark = Color(0xFF5DEEB2); // Lighter mint
   static const Color darkScaffoldBg = Color(0xFF1A1B2E); // Very dark blue

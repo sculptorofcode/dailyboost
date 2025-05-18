@@ -317,10 +317,52 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
-  }
-
-  void _loadMoreQuotes() {
-    context.read<HomeBloc>().add(const LoadMoreQuotesEvent());
+  }  void _loadMoreQuotes() {
+    // Check if we're already at the maximum quotes
+    final homeBloc = context.read<HomeBloc>();
+    final currentState = homeBloc.state;
+    
+    if (currentState is QuoteBatchLoaded && currentState.hasReachedMax) {
+      // Already at max, show a message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No more quotes available'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.baseRadius),
+          ),
+        ),
+      );
+      return;
+    }
+    
+    // Show a snackbar to indicate loading more quotes
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+              ),
+            ),
+            const SizedBox(width: 16),
+            const Text('Loading more quotes...'),
+          ],
+        ),
+        duration: const Duration(milliseconds: 800),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.baseRadius),
+        ),
+      ),
+    );
+    
+    // Trigger quote loading through the HomeBloc
+    homeBloc.add(const LoadMoreQuotesEvent());
   }
 
   @override

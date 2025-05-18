@@ -6,7 +6,9 @@ import 'package:dailyboost/core/theme/theme_provider.dart';
 import 'package:dailyboost/features/quotes/data/models/quote_model.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_event.dart';
+import 'package:dailyboost/features/quotes/logic/bloc/home/home_state.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/favorite_check.dart';
+import 'package:dailyboost/features/quotes/presentation/widgets/loading.dart';
 import 'package:dailyboost/features/quotes/presentation/widgets/quote_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -38,6 +40,11 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotateAnimation;
   int _currentPage = 0;
+  
+  // Loading indicator state
+  bool _isLoadingMore = false;
+  // Flag to show the loading page
+  bool _showLoadingPage = false;
 
   @override
   void initState() {
@@ -116,6 +123,72 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
       );
     }
   }
+  
+  // Function to load more quotes with loading indicator
+  void _loadMoreQuotesWithIndicator() {    
+    if (!_isLoadingMore) {
+      // Get current state to check if we've reached max
+      final homeBloc = context.read<HomeBloc>();
+      final currentState = homeBloc.state;
+      
+      // Only load more if we haven't reached the max
+      if (currentState is QuoteBatchLoaded && !currentState.hasReachedMax) {
+        setState(() {
+          _isLoadingMore = true;
+          _showLoadingPage = true;
+        });
+        
+        widget.onLoadMore();
+        
+        // Listen for state changes to properly update UI
+        final blocsub = homeBloc.stream.listen((state) {
+          if (state is HomeError) {
+            // Show error message
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error loading more quotes: ${state.message}'),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
+                  action: SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: _loadMoreQuotesWithIndicator,
+                  ),
+                ),
+              );
+              
+              if (mounted) {
+                setState(() {
+                  _isLoadingMore = false;
+                  _showLoadingPage = false;
+                });
+              }
+            }
+          } else if (state is QuoteBatchLoaded) {
+            // Successfully loaded
+            if (mounted) {
+              setState(() {
+                _isLoadingMore = false;
+                _showLoadingPage = false;
+              });
+            }
+          }
+        });
+        
+        // Auto-cancel subscription after a timeout
+        Future.delayed(const Duration(seconds: 5), () {
+          blocsub.cancel();
+          if (mounted && _isLoadingMore) {
+            setState(() {
+              _isLoadingMore = false;
+              _showLoadingPage = false;
+            });
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,89 +196,146 @@ class _QuoteBatchViewState extends State<QuoteBatchView>
     final double fontSize = themeProvider.fontSize;
     final String quoteStyle = themeProvider.quoteDisplayStyle;
 
-    return PageView.builder(
-      controller: _pageController,
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: widget.quotes.length,
-      onPageChanged: (int index) {
-        setState(() {
-          _currentPage = index;
-        });
-
-        // Check if we need to load more quotes
-        if (index >= widget.quotes.length - 5) {
-          widget.onLoadMore();
-        }
-
-        // Reset and restart animation when page changes
-        _animationController.reset();
-        _animationController.forward();
-      },
-      itemBuilder: (context, index) {
-        final quote = widget.quotes[index];
-        final GlobalKey quoteKey = GlobalKey();
-
-        return FavoriteCheck(
-          key: ValueKey("favorite-${quote.id}"),
-          quote: quote,
-          builder:
-              (isFavorite, toggleFavorite) => QuoteView(
-                quote: quote,
-                isDarkMode: widget.isDarkMode,
-                fontSize: fontSize,
-                quoteStyle: quoteStyle,
-                animationController: _animationController,
-                opacityAnimation: _opacityAnimation,
-                scaleAnimation: _scaleAnimation,
-                rotateAnimation: _rotateAnimation,
-                isFavorite: isFavorite,
-                onNewQuote: () {
-                  final nextPage = (_currentPage + 1) % widget.quotes.length;
-                  _pageController.animateToPage(
-                    nextPage,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                onSaveToFavorites: () {
-                  toggleFavorite();
-                  if (!isFavorite) {
-                    context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Added to favorites!'),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+    return Stack(
+      children: [
+        PageView.builder(            
+          controller: _pageController,
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: _showLoadingPage ? widget.quotes.length + 1 : widget.quotes.length,
+          onPageChanged: (int index) {
+            debugPrint('Page changed to index: $index, currentPage: $_currentPage, length: ${widget.quotes.length}');
+            setState(() {
+              _currentPage = index;
+            });
+        
+            // Check if we need to load more quotes
+            if (index >= widget.quotes.length - 5 && !_showLoadingPage) {
+              _loadMoreQuotesWithIndicator();
+            }
+        
+            // Reset and restart animation when page changes
+            _animationController.reset();
+            _animationController.forward();
+          },
+          itemBuilder: (context, index) {
+            // If we're showing the loading page and this is the last index, show loading indicator
+            if (_showLoadingPage && index == widget.quotes.length) {
+              return const Center(child: LoadingIndicator());
+            }
+            
+            final quote = widget.quotes[index];
+            final GlobalKey quoteKey = GlobalKey();
+        
+            return FavoriteCheck(
+              key: ValueKey("favorite-${quote.id}"),
+              quote: quote,
+              builder:
+                  (isFavorite, toggleFavorite) => QuoteView(
+                    quote: quote,
+                    isDarkMode: widget.isDarkMode,
+                    fontSize: fontSize,
+                    quoteStyle: quoteStyle,
+                    animationController: _animationController,
+                    opacityAnimation: _opacityAnimation,
+                    scaleAnimation: _scaleAnimation,
+                    rotateAnimation: _rotateAnimation,
+                    isFavorite: isFavorite,
+                    onNewQuote: () {
+                      final nextPage = (_currentPage + 1) % widget.quotes.length;
+                      _pageController.animateToPage(
+                        nextPage,
                         duration: const Duration(milliseconds: 300),
-                      ),
-                    );
-                  } else {
-                    context.read<HomeBloc>().add(
-                      RemoveFromFavoritesEvent(quote.id),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Removed from favorites'),
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    onSaveToFavorites: () {
+                      toggleFavorite();
+                      if (!isFavorite) {
+                        context.read<HomeBloc>().add(AddToFavoritesEvent(quote));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Added to favorites!'),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            duration: const Duration(milliseconds: 300),
+                          ),
+                        );
+                      } else {
+                        context.read<HomeBloc>().add(
+                          RemoveFromFavoritesEvent(quote.id),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Removed from favorites'),
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            duration: const Duration(milliseconds: 300),
+                          ),
+                        );
+                      }
+                    },
+                    onShareQuote: () => _shareQuoteImageWithKey(quoteKey),
+                    quoteKey: quoteKey,
+                  ),
+            );
+          },
+        ),
+        
+        // Loading indicator overlay for "load more" operations
+        if (_isLoadingMore)
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
                         ),
-                        duration: const Duration(milliseconds: 300),
                       ),
-                    );
-                  }
-                },
-                onShareQuote: () => _shareQuoteImageWithKey(quoteKey),
-                quoteKey: quoteKey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Loading more quotes...',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-        );
-      },
+            ),
+          ),
+      ],
     );
   }
 }

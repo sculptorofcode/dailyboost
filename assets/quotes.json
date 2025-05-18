@@ -1,0 +1,122 @@
+[
+  {
+    "id": "local-1",
+    "content": "The best way to predict the future is to create it.",
+    "author": "Abraham Lincoln",
+    "mood": "Motivational"
+  },
+  {
+    "id": "local-2",
+    "content": "Believe you can and you're halfway there.",
+    "author": "Theodore Roosevelt",
+    "mood": "Inspirational"
+  },
+  {
+    "id": "local-3",
+    "content": "It does not matter how slowly you go as long as you do not stop.",
+    "author": "Confucius",
+    "mood": "Perseverance"
+  },
+  {
+    "id": "local-4",
+    "content": "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+    "author": "Winston Churchill",
+    "mood": "Success"
+  },
+  {
+    "id": "local-5",
+    "content": "Your time is limited, don't waste it living someone else's life.",
+    "author": "Steve Jobs",
+    "mood": "Life"
+  },
+  {
+    "id": "local-6",
+    "content": "In the middle of difficulty lies opportunity.",
+    "author": "Albert Einstein",
+    "mood": "Opportunity"
+  },
+  {
+    "id": "local-7",
+    "content": "The only way to do great work is to love what you do.",
+    "author": "Steve Jobs",
+    "mood": "Passion"
+  },
+  {
+    "id": "local-8",
+    "content": "Life is what happens when you're busy making other plans.",
+    "author": "John Lennon",
+    "mood": "Life"
+  },
+  {
+    "id": "local-9",
+    "content": "The future belongs to those who believe in the beauty of their dreams.",
+    "author": "Eleanor Roosevelt",
+    "mood": "Dreams"
+  },
+  {
+    "id": "local-10",
+    "content": "The only limit to our realization of tomorrow will be our doubts of today.",
+    "author": "Franklin D. Roosevelt",
+    "mood": "Doubt"
+  },
+  {
+    "id": "local-11",
+    "content": "Do what you can, with what you have, where you are.",
+    "author": "Theodore Roosevelt",
+    "mood": "Action"
+  },
+  {
+    "id": "local-12",
+    "content": "The journey of a thousand miles begins with one step.",
+    "author": "Lao Tzu",
+    "mood": "Beginning"
+  },
+  {
+    "id": "local-13",
+    "content": "We may encounter many defeats but we must not be defeated.",
+    "author": "Maya Angelou",
+    "mood": "Resilience"
+  },
+  {
+    "id": "local-14",
+    "content": "Don't count the days, make the days count.",
+    "author": "Muhammad Ali",
+    "mood": "Productivity"
+  },
+  {
+    "id": "local-15",
+    "content": "Happiness is not something ready-made. It comes from your own actions.",
+    "author": "Dalai Lama",
+    "mood": "Happiness"
+  },
+  {
+    "id": "local-16",
+    "content": "The best revenge is massive success.",
+    "author": "Frank Sinatra",
+    "mood": "Success"
+  },
+  {
+    "id": "local-17",
+    "content": "The mind is everything. What you think you become.",
+    "author": "Buddha",
+    "mood": "Mindset"
+  },
+  {
+    "id": "local-18",
+    "content": "Whether you think you can or you think you can't, you're right.",
+    "author": "Henry Ford",
+    "mood": "Mindset"
+  },
+  {
+    "id": "local-19",
+    "content": "It always seems impossible until it's done.",
+    "author": "Nelson Mandela",
+    "mood": "Achievement"
+  },
+  {
+    "id": "local-20",
+    "content": "The power of imagination makes us infinite.",
+    "author": "John Muir",
+    "mood": "Imagination"
+  }
+]

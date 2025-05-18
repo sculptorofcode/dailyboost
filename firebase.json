@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "daily-boost-d6377",
+          "appId": "1:975776761083:android:67bd286acd12a7682cdc5e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "daily-boost-d6377",
+          "configurations": {
+            "android": "1:975776761083:android:67bd286acd12a7682cdc5e",
+            "ios": "1:975776761083:ios:725f3e083e3866bd2cdc5e"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

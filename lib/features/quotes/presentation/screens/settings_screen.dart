@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/navigation/navigation_utils.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../features/auth/logic/providers/auth_provider.dart';
-import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -351,9 +351,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         false,
                   );
                   authProvider.logout();
-                  context.go(
-                    '/login',
-                  );
+                  NavigationUtils.navigateToLogin(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor:

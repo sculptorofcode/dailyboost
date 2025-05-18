@@ -117,3 +117,14 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+firebase-data/
+# Firebase Hosting
+.firebase/
+# Firebase Rules and Indexes
+**/firestore.indexes.json
+**/firebaserc

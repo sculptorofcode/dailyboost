@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -39,15 +41,50 @@ class AuthService {
     }
   }
 
+  // Sign in with Google
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      // Begin interactive sign in process
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User cancelled the sign-in flow
+        return null;
+      }
+
+      // Obtain auth details from request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in with the credential
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw Exception('Failed to sign in with Google: ${e.toString()}');
+    }
+  }
+
   // Sign out
   Future<void> logout() async {
-    await _auth.signOut();
+    try {
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+    } catch (e) {
+      throw Exception('Failed to sign out: ${e.toString()}');
+    }
   }
 
   // Handle Firebase Auth exceptions with user-friendly messages
   Exception _handleAuthException(FirebaseAuthException e) {
     String message;
-    
+
     switch (e.code) {
       case 'user-not-found':
         message = 'No user found with this email.';
@@ -70,10 +107,17 @@ class AuthService {
       case 'user-disabled':
         message = 'This user account has been disabled.';
         break;
+      case 'account-exists-with-different-credential':
+        message =
+            'An account already exists with the same email address but different sign-in credentials.';
+        break;
+      case 'invalid-credential':
+        message = 'The credential provided is malformed or has expired.';
+        break;
       default:
         message = 'An undefined error occurred: ${e.message}';
     }
-    
+
     return Exception(message);
   }
 

@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "975776761083",
+    "project_id": "daily-boost-d6377",
+    "storage_bucket": "daily-boost-d6377.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975776761083:android:67bd286acd12a7682cdc5e",
+        "android_client_info": {
+          "package_name": "com.srtech.dailyboost"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "975776761083-3rfilruht28nmr3r6duk4piaim2s137t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.srtech.dailyboost",
+            "certificate_hash": "6e11d743b2b2da5ee9818167ee72f1c58aadadc5"
+          }
+        },
+        {
+          "client_id": "975776761083-c4foa2k95sg821nnf2lt214qdu350ebk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.srtech.dailyboost",
+            "certificate_hash": "9e0fa696f0c5c9213cb9d5fe4c8d8f74a4f37e5d"
+          }
+        },
+        {
+          "client_id": "975776761083-nlj3f1ta2q44oajkgegf4iak91ptt0t1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByfYEETDwoPSACEp8a4UFRq_N-YYSGRoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "975776761083-nlj3f1ta2q44oajkgegf4iak91ptt0t1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "975776761083-jff8ej1e0i6j4s07mepukuno18ctc2pp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.srtech.dailyboost"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

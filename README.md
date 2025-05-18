@@ -20,7 +20,7 @@ A modern, cross-platform app designed to uplift your day with curated quotes, vi
 
 ## ✅ Cool Feature Checklist
 - [ ] Daily Quote Notification
-- [ ] Quote Sharing (as image or text)
+- [x] Quote Sharing (as image or text)
 - [ ] Custom Quote Collections
 - [ ] Quote of the Day Widget
 - [ ] Mood-based Recommendations
