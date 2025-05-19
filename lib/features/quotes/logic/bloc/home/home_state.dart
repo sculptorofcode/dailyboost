@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../data/models/quote_model.dart';
 import 'home_event.dart';
 
@@ -20,6 +21,7 @@ class HomeLoaded extends HomeState {
 
 class QuoteBatchLoaded extends HomeState {
   final List<QuoteModel> quotes;
+  final int totalCount;
   final bool hasReachedMax;
   final String? currentMood;
   final List<String> likedQuoteIds;
@@ -28,7 +30,8 @@ class QuoteBatchLoaded extends HomeState {
   final QuoteFilter filter;
 
   QuoteBatchLoaded(
-    this.quotes, {
+    this.quotes,
+    this.totalCount, {
     this.hasReachedMax = false,
     this.currentMood,
     this.likedQuoteIds = const [],
@@ -48,6 +51,7 @@ class QuoteBatchLoaded extends HomeState {
   }) {
     return QuoteBatchLoaded(
       quotes ?? this.quotes,
+      totalCount,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       currentMood: currentMood ?? this.currentMood,
       likedQuoteIds: likedQuoteIds ?? this.likedQuoteIds,
@@ -70,7 +74,15 @@ class QuoteBatchLoaded extends HomeState {
   }
 
   @override
-  List<Object?> get props => [quotes, hasReachedMax, currentMood, likedQuoteIds, viewCounts, viewedQuoteIds, filter];
+  List<Object?> get props => [
+    quotes,
+    hasReachedMax,
+    currentMood,
+    likedQuoteIds,
+    viewCounts,
+    viewedQuoteIds,
+    filter,
+  ];
 }
 
 class HomeError extends HomeState {

@@ -1,60 +1,64 @@
 import 'package:dailyboost/features/auth/data/models/user_profile_model.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dailyboost/features/auth/data/services/auth_service.dart';
 import 'package:dailyboost/features/auth/data/services/profile_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 // Renamed from AuthProvider to UserAuthProvider to avoid name conflicts with Firebase's AuthProvider
 class UserAuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final ProfileService _profileService = ProfileService();
-  
+
   User? _user;
   UserProfileModel? _userProfile;
   bool _isLoading = true;
   bool _isProfileLoading = false;
+  bool _isGuestMode = false;
 
   UserAuthProvider() {
     // Listen for authentication state changes
     _authService.authStateChanges.listen((user) async {
       _user = user;
       _isLoading = false;
-      
+
       if (user != null) {
         // Load or create user profile
         await _loadUserProfile();
       } else {
         _userProfile = null;
       }
-      
+
       notifyListeners();
     });
   }
 
   // Current user
   User? get user => _user;
-  
+
   // User profile
   UserProfileModel? get userProfile => _userProfile;
-  
+
   // Loading states
   bool get isLoading => _isLoading;
   bool get isProfileLoading => _isProfileLoading;
 
-  // Check if user is authenticated
-  bool get isAuthenticated => _user != null;
+  // Guest mode state
+  bool get isGuestMode => _isGuestMode;
+
+  // Check if user is authenticated (either logged in or in guest mode)
+  bool get isAuthenticated => _user != null || _isGuestMode;
 
   // Load user profile from Firestore
   Future<void> _loadUserProfile() async {
     if (_user == null) return;
-    
+
     _isProfileLoading = true;
     notifyListeners();
-    
+
     try {
       // Try to get existing profile
       _userProfile = await _profileService.getUserProfile(_user!.uid);
-      
+
       // If no profile exists, create one
       if (_userProfile == null) {
         _userProfile = await _profileService.createInitialProfile(_user!);
@@ -79,7 +83,7 @@ class UserAuthProvider extends ChangeNotifier {
   // Update user profile
   Future<void> updateUserProfile(UserProfileModel updatedProfile) async {
     if (_user == null) return;
-    
+
     try {
       await _profileService.saveUserProfile(updatedProfile);
       _userProfile = updatedProfile;
@@ -122,25 +126,29 @@ class UserAuthProvider extends ChangeNotifier {
 
   // Logout
   Future<void> logout() async {
-    await _authService.logout();
-    _userProfile = null;
+    if (_isGuestMode) {
+      disableGuestMode();
+    } else {
+      await _authService.logout();
+      _userProfile = null;
+    }
   }
 
   // Send password reset email
   Future<void> resetPassword(String email) async {
     await _authService.sendPasswordResetEmail(email);
   }
-  
+
   // Refresh user profile data
   Future<void> refreshProfile() async {
     if (_user == null) return;
     await _loadUserProfile();
   }
-  
+
   // Update user location
   Future<void> updateLocation() async {
     if (_user == null || _userProfile == null) return;
-    
+
     try {
       final location = await _profileService.getCurrentLocation();
       if (location != null && _userProfile != null) {
@@ -150,5 +158,19 @@ class UserAuthProvider extends ChangeNotifier {
     } catch (e) {
       // Silently fail
     }
+  }
+
+  // Enable guest mode
+  void enableGuestMode() {
+    _isGuestMode = true;
+    _user = null;
+    _userProfile = null;
+    notifyListeners();
+  }
+
+  // Disable guest mode (when logging out or logging in)
+  void disableGuestMode() {
+    _isGuestMode = false;
+    notifyListeners();
   }
 }

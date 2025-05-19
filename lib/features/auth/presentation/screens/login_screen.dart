@@ -93,6 +93,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Handle Skip/Guest mode
+  void _skipLogin() {
+    final authProvider = Provider.of<UserAuthProvider>(context, listen: false);
+
+    authProvider.enableGuestMode();
+    NavigationUtils.navigateToHome(context); // Navigate to home screen
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -342,6 +350,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: const Text(
                       'Sign in with Google',
                       style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Skip button (Guest mode)
+                  TextButton(
+                    onPressed: _skipLogin,
+                    child: Text(
+                      'Skip (Continue as Guest)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color:
+                            isDarkMode
+                                ? AppConstants.textColorDark.withOpacity(0.7)
+                                : AppConstants.textColor.withOpacity(0.7),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),

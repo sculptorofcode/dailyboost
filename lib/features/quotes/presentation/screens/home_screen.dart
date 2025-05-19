@@ -1,4 +1,5 @@
 import 'package:dailyboost/core/utils/constants.dart';
+import 'package:dailyboost/features/quotes/data/models/mood_model.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_bloc.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_event.dart';
 import 'package:dailyboost/features/quotes/logic/bloc/home/home_state.dart';
@@ -8,7 +9,6 @@ import 'package:dailyboost/features/quotes/presentation/widgets/quote_batch_view
 import 'package:dailyboost/features/quotes/presentation/widgets/welcome_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dailyboost/features/quotes/data/models/mood_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -317,11 +317,13 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
-  }  void _loadMoreQuotes() {
+  }
+
+  void _loadMoreQuotes() {
     // Check if we're already at the maximum quotes
     final homeBloc = context.read<HomeBloc>();
     final currentState = homeBloc.state;
-    
+
     if (currentState is QuoteBatchLoaded && currentState.hasReachedMax) {
       // Already at max, show a message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -335,13 +337,13 @@ class _HomeScreenState extends State<HomeScreen>
       );
       return;
     }
-    
+
     // Get the current mood from the state if it exists
     String? currentMood;
     if (currentState is QuoteBatchLoaded) {
       currentMood = currentState.currentMood;
     }
-    
+
     // Show a snackbar to indicate loading more quotes
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -352,13 +354,17 @@ class _HomeScreenState extends State<HomeScreen>
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
             ),
             const SizedBox(width: 16),
-            Text(currentMood != null 
-              ? 'Loading more quotes for $currentMood...'
-              : 'Loading more quotes...'),
+            Text(
+              currentMood != null
+                  ? 'Loading more quotes for $currentMood...'
+                  : 'Loading more quotes...',
+            ),
           ],
         ),
         duration: const Duration(milliseconds: 800),
@@ -368,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
-    
+
     // Trigger quote loading through the HomeBloc with the current mood
     homeBloc.add(LoadMoreQuotesEvent(mood: currentMood));
   }
@@ -441,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen>
               } else if (state is QuoteBatchLoaded) {
                 return QuoteBatchView(
                   quotes: state.quotes,
+                  totalCount: state.totalCount,
                   isDarkMode: isDarkMode,
                   onLoadMore: _loadMoreQuotes,
                 );

@@ -25,3 +25,11 @@ class FavoritesError extends FavoritesState {
   @override
   List<Object?> get props => [message];
 }
+
+class FavoritesAuthError extends FavoritesState {
+  final String message;
+  FavoritesAuthError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

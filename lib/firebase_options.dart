@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyByfYEETDwoPSACEp8a4UFRq_N-YYSGRoY',
-    appId: '1:975776761083:android:67bd286acd12a7682cdc5e',
+    appId: '1:975776761083:android:af1df5a6fe0053f02cdc5e',
     messagingSenderId: '975776761083',
     projectId: 'daily-boost-d6377',
     storageBucket: 'daily-boost-d6377.firebasestorage.app',

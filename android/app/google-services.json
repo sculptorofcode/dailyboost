@@ -1,34 +1,19 @@
 {
   "project_info": {
     "project_number": "975776761083",
+    "firebase_url": "https://daily-boost-d6377-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "daily-boost-d6377",
     "storage_bucket": "daily-boost-d6377.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:975776761083:android:67bd286acd12a7682cdc5e",
+        "mobilesdk_app_id": "1:975776761083:android:af1df5a6fe0053f02cdc5e",
         "android_client_info": {
           "package_name": "com.srtech.dailyboost"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "975776761083-3rfilruht28nmr3r6duk4piaim2s137t.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.srtech.dailyboost",
-            "certificate_hash": "6e11d743b2b2da5ee9818167ee72f1c58aadadc5"
-          }
-        },
-        {
-          "client_id": "975776761083-c4foa2k95sg821nnf2lt214qdu350ebk.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.srtech.dailyboost",
-            "certificate_hash": "9e0fa696f0c5c9213cb9d5fe4c8d8f74a4f37e5d"
-          }
-        },
         {
           "client_id": "975776761083-nlj3f1ta2q44oajkgegf4iak91ptt0t1.apps.googleusercontent.com",
           "client_type": 3
@@ -43,7 +28,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "975776761083-nlj3f1ta2q44oajkgegf4iak91ptt0t1.apps.googleusercontent.com",
+              "client_id": "975776761083-4o84ujfrernq6cgn132krgu5dhp10q4o.apps.googleusercontent.com",
               "client_type": 3
             },
             {

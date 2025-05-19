@@ -6,16 +6,18 @@ import 'routes.dart';
 class NavigationUtils {
   /// Navigate to a named route
   static void navigateTo(BuildContext context, String routeName, {Object? arguments}) {
-    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+    Navigator.of(context).pushNamedAndRemoveUntil(
       routeName,
       (route) => false,
       arguments: arguments,
     );
   }
-
   /// Navigate to the home screen
   static void navigateToHome(BuildContext context) {
-    navigateTo(context, Routes.home);
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      Routes.home,
+      (route) => false,
+    );
   }
 
   /// Navigate to the login screen
@@ -25,7 +27,7 @@ class NavigationUtils {
 
   /// Navigate to the signup screen
   static void navigateToSignup(BuildContext context) {
-    navigateTo(context, Routes.signup);
+    Navigator.of(context).pushNamed(Routes.signup);
   }
 
   /// Navigate to forgot password screen
@@ -35,21 +37,16 @@ class NavigationUtils {
 
   /// Navigate to favorites screen
   static void navigateToFavorites(BuildContext context) {
-    navigateTo(context, Routes.favorites);
-  }
-
-  /// Navigate to custom quotes screen
-  static void navigateToCustomQuotes(BuildContext context) {
-    navigateTo(context, Routes.quotes);
+    Navigator.of(context).pushNamed(Routes.favorites);
   }
 
   /// Navigate to profile screen
   static void navigateToProfile(BuildContext context) {
-    navigateTo(context, Routes.profile);
+    Navigator.of(context).pushNamed(Routes.profile);
   }
 
   /// Navigate to settings screen
   static void navigateToSettings(BuildContext context) {
-    navigateTo(context, Routes.settings);
+    Navigator.of(context).pushNamed(Routes.settings);
   }
 }

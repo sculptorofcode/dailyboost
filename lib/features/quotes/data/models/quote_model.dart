@@ -15,7 +15,7 @@ class QuoteModel {
 
   factory QuoteModel.fromJson(Map<String, dynamic> json) {
     return QuoteModel(
-      id: json['id'] as String,
+      id: json['id'].toString(),
       content: json['content'] as String,
       author: json['author'] as String,
       mood: json['mood'] as String,

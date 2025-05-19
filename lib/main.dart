@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
@@ -25,6 +26,12 @@ void main() async {
   try {
     playServicesAvailable = await PlayServicesUtils.checkPlayServices();
     debugPrint("Google Play Services available: $playServicesAvailable");
+
+    await Supabase.initialize(
+      url: AppConstants.supabaseUrl,
+      anonKey: AppConstants.supabaseAnonKey,
+    );
+    debugPrint("Supabase initialized successfully");
   } catch (e) {
     debugPrint("Error checking Play Services availability: $e");
   }
@@ -85,8 +92,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
-          return MaterialApp(
-            title: AppConstants.appName,
+          return MaterialApp(            title: AppConstants.appName,
             theme: AppTheme.getTheme(false),
             darkTheme: AppTheme.getTheme(true),
             themeMode: themeProvider.themeMode,
@@ -95,6 +101,7 @@ class MyApp extends StatelessWidget {
               if (child == null) return const SizedBox.shrink();
               return ExitConfirmationWrapper(child: child);
             },
+            // Let the AppNavigator handle the navigation
             home: const AppNavigator(),
           );
         },

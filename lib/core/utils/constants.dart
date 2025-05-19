@@ -55,4 +55,8 @@ class AppConstants {
     Color(0xFFFF8080),
     Color(0xFFC55F5F),
   ];
+
+  // Supabase configuration
+  static const String supabaseUrl = 'https://qypbocxjojspkxtfqfcs.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5cGJvY3hqb2pzcGt4dGZxZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2MzYxMDAsImV4cCI6MjA2MzIxMjEwMH0.QezCfHQHeRMWB1UlD27EtCo_Zn3J8bxbk8-lCFh6OMg';
 }

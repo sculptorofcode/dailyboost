@@ -14,9 +14,15 @@ class FavoriteCheck extends StatefulWidget {
 }
 
 class _FavoriteCheckState extends State<FavoriteCheck> {
-  final QuoteRepository _repository = QuoteRepository();
+  // Use a static repository instance shared across all widgets
+  static final QuoteRepository _repository = QuoteRepository();
   bool _isFavorite = false;
   bool _isLoaded = false;
+  // Cache the last check time
+  DateTime? _lastCheckTime;
+  
+  // How often to refresh the favorite status
+  static const Duration _refreshInterval = Duration(seconds: 30);
 
   @override
   void initState() {
@@ -31,21 +37,58 @@ class _FavoriteCheckState extends State<FavoriteCheck> {
       _checkIfFavorite();
     }
   }
-
+  
   Future<void> _checkIfFavorite() async {
-    final favoriteIds = await _repository.getFavorites();
-    if (mounted) {
-      setState(() {
-        _isFavorite = favoriteIds.contains(widget.quote.id);
-        _isLoaded = true;
-      });
+    // Check if we need to refresh
+    final now = DateTime.now();
+    if (_lastCheckTime != null && 
+        now.difference(_lastCheckTime!) < _refreshInterval &&
+        _isLoaded) {
+      return; // Skip check if recently checked
+    }
+    
+    try {
+      final isFav = await _repository.isFavorite(widget.quote.id);
+      if (mounted) {
+        setState(() {
+          _isFavorite = isFav;
+          _isLoaded = true;
+          _lastCheckTime = now;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+      if (mounted) {
+        setState(() {
+          _isFavorite = false;
+          _isLoaded = true;
+        });
+      }
     }
   }
-
-  void _toggleFavorite() {
+  void _toggleFavorite() async {
+    // First update UI for instant feedback
     setState(() {
       _isFavorite = !_isFavorite;
+      _lastCheckTime = DateTime.now(); // Update check time
     });
+    
+    // Then update backend
+    try {
+      if (_isFavorite) {
+        await _repository.addFavorite(widget.quote);
+      } else {
+        await _repository.removeFavorite(widget.quote.id);
+      }
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+      // Revert UI if the operation failed
+      if (mounted) {
+        setState(() {
+          _isFavorite = !_isFavorite;
+        });
+      }
+    }
   }
 
   @override

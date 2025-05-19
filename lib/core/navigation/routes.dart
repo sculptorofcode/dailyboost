@@ -50,16 +50,6 @@ class Routes {
         return MaterialPageRoute(
           builder: (_) => const BottomNavScaffold(initialIndex: settingsIndex),
         );
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const BottomNavScaffold(initialIndex: homeIndex),
-        );
-    }
-  }
-
-  // Generate routes for unauthenticated users
-  static Route<dynamic> generateAuthRoute(RouteSettings settings) {
-    switch (settings.name) {
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case signup:
@@ -67,7 +57,9 @@ class Routes {
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
       default:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return MaterialPageRoute(
+          builder: (_) => const BottomNavScaffold(initialIndex: homeIndex),
+        );
     }
   }
 }

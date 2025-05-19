@@ -38,27 +38,14 @@ class QuoteView extends StatelessWidget {
     required this.quoteKey,
     super.key,
   });
-
   @override
   Widget build(BuildContext context) {
     // Choose the right quote style based on settings
+    Widget quoteWidget;
+    
     switch (quoteStyle) {
       case 'Minimal':
-        return MinimalQuote(
-          quote: quote,
-          isDarkMode: isDarkMode,
-          fontSize: fontSize,
-          animationController: animationController,
-          opacityAnimation: opacityAnimation,
-          scaleAnimation: scaleAnimation,          onLike: onLike,
-          onSaveToFavorites: onSaveToFavorites,
-          onShareQuote: onShareQuote,
-          isFavorite: isFavorite,
-          isLiked: isLiked,
-          quoteKey: quoteKey,
-        );
-      case 'Gradient':
-        return GradientQuote(
+        quoteWidget = MinimalQuote(
           quote: quote,
           isDarkMode: isDarkMode,
           fontSize: fontSize,
@@ -72,24 +59,43 @@ class QuoteView extends StatelessWidget {
           isLiked: isLiked,
           quoteKey: quoteKey,
         );
-      case 'Classic':
-        return ClassicQuote(
+        break;
+      case 'Gradient':
+        quoteWidget = GradientQuote(
           quote: quote,
           isDarkMode: isDarkMode,
           fontSize: fontSize,
           animationController: animationController,
           opacityAnimation: opacityAnimation,
           scaleAnimation: scaleAnimation,
-          rotateAnimation: rotateAnimation,          onLike: onLike,
+          onLike: onLike,
+          onSaveToFavorites: onSaveToFavorites,
+          onShareQuote: onShareQuote,
+          isFavorite: isFavorite,
+          isLiked: isLiked,
+          quoteKey: quoteKey,
+        );
+        break;
+      case 'Classic':
+        quoteWidget = ClassicQuote(
+          quote: quote,
+          isDarkMode: isDarkMode,
+          fontSize: fontSize,
+          animationController: animationController,
+          opacityAnimation: opacityAnimation,
+          scaleAnimation: scaleAnimation,
+          rotateAnimation: rotateAnimation,          
+          onLike: onLike,
           onSaveToFavorites: onSaveToFavorites,
           onShareQuote: onShareQuote,
           isFavorite: isFavorite,
           quoteKey: quoteKey,
           isLiked: isLiked,
         );
+        break;
       case 'Card':
       default:
-        return CardQuote(
+        quoteWidget = CardQuote(
           quote: quote,
           isDarkMode: isDarkMode,
           fontSize: fontSize,
@@ -104,6 +110,13 @@ class QuoteView extends StatelessWidget {
           quoteKey: quoteKey,
           isLiked: isLiked,
         );
+        break;
     }
+
+    // Wrap with gesture detector for double tap to like
+    return GestureDetector(
+      onDoubleTap: !isLiked ? onLike : null,
+      child: quoteWidget,
+    );
   }
 }

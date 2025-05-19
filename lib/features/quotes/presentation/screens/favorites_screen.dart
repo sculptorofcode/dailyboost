@@ -8,8 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/utils/constants.dart';
 import '../../../../core/navigation/navigation_utils.dart';
+import '../../../../core/utils/constants.dart';
 import '../../data/models/quote_model.dart';
 import '../../logic/bloc/favorites/favorites_bloc.dart';
 import '../../logic/bloc/favorites/favorites_event.dart';
@@ -283,8 +283,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 32),            
-            ElevatedButton.icon(              
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
               onPressed: () {
                 NavigationUtils.navigateToHome(context);
               },
@@ -498,7 +498,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Quote icon
+                      // Quote icon and tags row
                       Row(
                         children: [
                           Icon(
@@ -509,7 +509,39 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                             size: 24,
                           ),
                           const Spacer(),
-                          // Mood tag
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.visibility_outlined,
+                                  size: 14,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  quote.viewCount.toString(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
